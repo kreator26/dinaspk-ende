@@ -1365,4 +1365,21 @@ if (isDashboardPage) {
       if (e.target === m) m.classList.remove('active');
     });
   });
+}// ============ LOAD FOOTER DINAMIS ============
+async function loadFooter() {
+  try {
+    const response = await fetch('footer.html');
+    if (response.ok) {
+      const footerHTML = await response.text();
+      const footerContainer = document.getElementById('footer-container');
+      if (footerContainer) {
+        footerContainer.innerHTML = footerHTML;
+      }
+    }
+  } catch (error) {
+    console.warn('Footer tidak dapat dimuat:', error);
+  }
 }
+
+// Panggil fungsi load footer saat halaman dimuat
+loadFooter();
