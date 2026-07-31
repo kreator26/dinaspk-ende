@@ -988,12 +988,20 @@ function goPage(p) {
 function viewSchoolMedia(schoolId) {
   const school = schools.find(s => s.id === schoolId);
   if (!school) return;
-  
+
+  // ✅ PERBAIKAN: Sembunyikan daftar sekolah, tampilkan section media
+  document.getElementById('adminSchoolList').style.display = 'none';
+  document.getElementById('sekolahMediaSection').style.display = 'block';
+
+  // Simpan user admin asli, lalu ubah sementara menjadi konteks sekolah yang diklik
   const origUser = currentUser;
   currentUser = { type: 'sekolah', schoolId, school };
+  
+  // Render media sekolah tersebut
   renderMyMedia();
   showSection('dashboard');
-  
+
+  // Tambahkan tombol kembali jika belum ada
   const section = document.getElementById('sekolahMediaSection');
   if (!document.getElementById('backBtn')) {
     const btn = document.createElement('button');
@@ -1002,11 +1010,13 @@ function viewSchoolMedia(schoolId) {
     btn.style.marginBottom = '1rem';
     btn.textContent = '← Kembali ke Daftar Sekolah';
     btn.onclick = () => {
+      // Kembalikan ke konteks Admin
       currentUser = origUser;
       document.getElementById('adminSchoolList').style.display = 'block';
       document.getElementById('sekolahMediaSection').style.display = 'none';
       btn.remove();
       renderDashboard();
+      renderSchoolTable(); 
     };
     section.insertBefore(btn, section.firstChild);
   }
