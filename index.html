@@ -28,7 +28,6 @@
 <div class="login-page" id="loginPage">
   <div class="login-box">
     <div class="login-logo">
-      <!-- ✅ LOGO LOGIN: Ganti dari div kosong menjadi gambar -->
       <img src="logo.png" alt="Logo" class="login-logo-img">
       <h1>Sistem Informasi Sekolah</h1>
       <p>Kabupaten Ende – NTT</p>
@@ -55,7 +54,6 @@
   <header>
     <div class="header-inner">
       <div class="logo">
-        <!-- ✅ LOGO HEADER: Ganti dari emoji menjadi gambar -->
         <img src="logo.png" alt="Logo" class="header-logo-img">
         <div>
           <div>Sistem Informasi Sekolah</div>
@@ -67,12 +65,11 @@
           <span class="role-badge" id="userRole">-</span>
           <span id="userName">-</span>
         </div>
-        <button class="btn btn-sm btn-outline btn-white" onclick="showSection('profile')">️ Profil</button>
+        <button class="btn btn-sm btn-outline btn-white" onclick="showSection('profile')">⚙️ Profil</button>
         <button class="btn btn-sm btn-danger" onclick="handleLogout()">🚪 Logout</button>
       </div>
     </div>
   </header>
-  
 
   <div class="container">
     <!-- DASHBOARD SECTION -->
@@ -81,10 +78,10 @@
       
       <!-- Admin: School List -->
       <div id="adminSchoolList">
-        <h2 style="margin-bottom:1rem;"> Daftar Seluruh Sekolah</h2>
+        <h2 style="margin-bottom:1rem;">📊 Daftar Seluruh Sekolah</h2>
         <div class="search-panel">
           <div class="search-row">
-            <input type="text" class="search-input" id="searchSchool" placeholder=" Cari nama sekolah, NPSN, atau kecamatan...">
+            <input type="text" class="search-input" id="searchSchool" placeholder="🔍 Cari nama sekolah, NPSN, atau kecamatan...">
             <select class="filter-select" id="filterBentuk">
               <option value="">Semua Bentuk</option>
             </select>
@@ -112,7 +109,7 @@
       
       <!-- Sekolah: My Media -->
       <div id="sekolahMediaSection" style="display:none;">
-        <h2 style="margin-bottom:1rem;"> Media Sekolah Saya</h2>
+        <h2 style="margin-bottom:1rem;">📁 Media Sekolah Saya</h2>
         <div class="tabs">
           <button class="tab-btn active" onclick="switchMediaTab('foto', this)">📸 Foto (<span id="countFoto">0</span>)</button>
           <button class="tab-btn" onclick="switchMediaTab('video', this)">🎬 Video (<span id="countVideo">0</span>)</button>
@@ -145,7 +142,7 @@
     
     <!-- PROFILE SECTION -->
     <div class="section" id="section-profile">
-      <h2 style="margin-bottom:1rem;">️ Pengaturan Akun</h2>
+      <h2 style="margin-bottom:1rem;">⚙️ Pengaturan Akun</h2>
       <div class="school-info-card">
         <h2 id="profileSchoolName">-</h2>
         <div class="info-grid">
@@ -185,12 +182,19 @@
       <h2 id="formTitle" style="margin-bottom:1rem;">Tambah Media</h2>
       <form onsubmit="submitMedia(event)">
         <div class="form-group">
-          <label>Judul</label>
-          <input type="text" id="fTitle" required>
+          <label>Judul / Kategori</label>
+          <select id="fTitleSelect" onchange="handleTitleSelect()" required>
+            <option value="">-- Pilih Judul --</option>
+          </select>
+          <div class="form-hint">Pilih judul yang sudah tersedia, atau pilih "Lainnya" untuk mengetik manual.</div>
+        </div>
+        <div class="form-group" id="fTitleCustomGroup" style="display:none;">
+          <label>Judul Custom</label>
+          <input type="text" id="fTitleCustom" placeholder="Ketik judul di sini...">
         </div>
         <div class="form-group">
-          <label>Deskripsi</label>
-          <textarea id="fDesc" rows="2"></textarea>
+          <label>Deskripsi (Opsional)</label>
+          <textarea id="fDesc" rows="2" placeholder="Tambahkan keterangan jika perlu..."></textarea>
         </div>
         <div class="form-group">
           <label id="fUrlLabel">URL</label>

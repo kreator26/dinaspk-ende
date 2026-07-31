@@ -714,6 +714,65 @@ const schools = RAW_DATA.split('\n').filter(l => l.trim()).map((line, idx) => {
   };
 });
 
+// ============ DAFTAR JUDUL OTOMATIS (PREDEFINED TITLES) ============
+const PREDEFINED_TITLES = {
+  foto: [
+    "Upacara Bendera",
+    "Kegiatan Belajar Mengajar",
+    "Perpustakaan Sekolah",
+    "Laboratorium Komputer",
+    "Kantin Sekolah",
+    "Lapangan Olahraga",
+    "Musholla / Ruang Ibadah",
+    "Ruang Guru",
+    "Ruang Kepala Sekolah",
+    "Ruang UKS",
+    "Ekstrakurikuler",
+    "Kunjungan Edukatif",
+    "Peringatan Hari Besar",
+    "Lomba Antar Kelas",
+    "Wisuda / Pelepasan Siswa",
+    "Rapat Dewan Guru",
+    "Kegiatan Pramuka",
+    "Gotong Royong Sekolah",
+    "Fasilitas Sekolah",
+    "Prestasi Siswa",
+    "Lainnya (Ketik Manual)"
+  ],
+  video: [
+    "Video Profil Sekolah",
+    "Video Kegiatan Upacara",
+    "Video Pembelajaran di Kelas",
+    "Video Kegiatan Ekstrakurikuler",
+    "Video Peringatan Hari Besar",
+    "Video Lomba / Kompetisi",
+    "Video Kunjungan Edukatif",
+    "Video Tutorial / Edukasi",
+    "Video Dokumentasi Kegiatan",
+    "Video Wawancara / Testimoni",
+    "Video Pengumuman Sekolah",
+    "Lainnya (Ketik Manual)"
+  ],
+  dokumen: [
+    "Kurikulum Sekolah",
+    "Data Siswa",
+    "Data Guru dan Tenaga Kependidikan",
+    "Laporan Keuangan",
+    "Rencana Kerja Sekolah (RKS)",
+    "Program Kerja Tahunan",
+    "Laporan Evaluasi",
+    "Surat Keputusan (SK)",
+    "Notulen Rapat",
+    "Dokumen Akreditasi",
+    "Dokumen BOS",
+    "Panduan / Pedoman",
+    "Formulir Pendaftaran",
+    "Kalender Pendidikan",
+    "Struktur Organisasi",
+    "Lainnya (Ketik Manual)"
+  ]
+};
+
 // ============ AUTH SYSTEM ============
 const AUTH_KEY = 'sisfo_auth';
 const MEDIA_KEY = 'sisfo_media';
@@ -747,6 +806,7 @@ function saveMedia(m) {
 
 let currentUser = null;
 
+// ============ LOGIN / LOGOUT ============
 function handleLogin(e) {
   e.preventDefault();
   const user = document.getElementById('loginUser').value.trim();
@@ -845,11 +905,11 @@ function renderDashboard() {
     const total = (m.foto?.length || 0) + (m.video?.length || 0) + (m.dokumen?.length || 0);
     grid.innerHTML = `
       <div class="dash-card">
-        <div class="dash-label"> Foto</div>
+        <div class="dash-label">📸 Foto</div>
         <div class="dash-value">${m.foto?.length || 0}</div>
       </div>
       <div class="dash-card accent">
-        <div class="dash-label">🎬 Video</div>
+        <div class="dash-label"> Video</div>
         <div class="dash-value">${m.video?.length || 0}</div>
       </div>
       <div class="dash-card success">
@@ -980,7 +1040,7 @@ function switchMediaTab(tab, btn) {
 function renderFoto(items) {
   const grid = document.getElementById('gridFoto');
   if (!items.length) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon"></div>Belum ada foto</div>';
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📷</div>Belum ada foto</div>';
     return;
   }
   grid.innerHTML = items.map(i => `
@@ -1030,7 +1090,7 @@ function renderVideo(items) {
 function renderDokumen(items) {
   const grid = document.getElementById('gridDokumen');
   if (!items.length) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📄</div>Belum ada dokumen</div>';
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon"></div>Belum ada dokumen</div>';
     return;
   }
   grid.innerHTML = items.map(i => `
@@ -1049,14 +1109,46 @@ function renderDokumen(items) {
   `).join('');
 }
 
+// ============ HANDLE TITLE SELECT ============
+function handleTitleSelect() {
+  const select = document.getElementById('fTitleSelect');
+  const customGroup = document.getElementById('fTitleCustomGroup');
+  const customInput = document.getElementById('fTitleCustom');
+  
+  if (select.value === 'Lainnya (Ketik Manual)') {
+    customGroup.style.display = 'block';
+    customInput.required = true;
+  } else {
+    customGroup.style.display = 'none';
+    customInput.required = false;
+    customInput.value = '';
+  }
+}
+
+// ============ MEDIA FORM ============
 function openMediaForm(type) {
   currentFormType = type;
   const titles = { foto: 'Tambah Foto', video: 'Tambah Video', dokumen: 'Tambah Dokumen' };
   document.getElementById('formTitle').textContent = titles[type];
-  document.getElementById('fTitle').value = '';
+  
+  // Reset form
   document.getElementById('fDesc').value = '';
   document.getElementById('fUrl').value = '';
   document.getElementById('fFile').value = '';
+  document.getElementById('fTitleCustom').value = '';
+  document.getElementById('fTitleCustomGroup').style.display = 'none';
+  
+  // Populate dropdown judul
+  const select = document.getElementById('fTitleSelect');
+  select.innerHTML = '<option value="">-- Pilih Judul --</option>';
+  PREDEFINED_TITLES[type].forEach(title => {
+    const option = document.createElement('option');
+    option.value = title;
+    option.textContent = title;
+    select.appendChild(option);
+  });
+  
+  // Setup file upload dan hint
   document.getElementById('fFileGroup').style.display = type === 'foto' ? 'block' : 'none';
   const hints = {
     foto: 'URL gambar atau upload file',
@@ -1065,6 +1157,7 @@ function openMediaForm(type) {
   };
   document.getElementById('fUrlHint').textContent = hints[type];
   document.getElementById('fUrlLabel').textContent = type === 'foto' ? 'URL Gambar' : (type === 'video' ? 'URL YouTube' : 'URL Dokumen');
+  
   document.getElementById('formModal').classList.add('active');
 }
 
@@ -1074,7 +1167,12 @@ function closeForm() {
 
 function submitMedia(e) {
   e.preventDefault();
-  const title = document.getElementById('fTitle').value;
+  
+  // Ambil judul dari select atau custom input
+  const titleSelect = document.getElementById('fTitleSelect').value;
+  const titleCustom = document.getElementById('fTitleCustom').value;
+  const title = titleSelect === 'Lainnya (Ketik Manual)' ? titleCustom : titleSelect;
+  
   const desc = document.getElementById('fDesc').value;
   const fileInput = document.getElementById('fFile');
   let url = document.getElementById('fUrl').value;
