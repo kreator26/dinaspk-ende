@@ -4,12 +4,14 @@ import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/fireb
 
 // ⚠️ PENTING: GANTI DENGAN KONFIGURASI FIREBASE ANDA SENDIRI
 const firebaseConfig = {
-  apiKey: "GANTI_DENGAN_API_KEY_ANDA",
-  authDomain: "PROJECT_ID_ANDA.firebaseapp.com",
-  projectId: "PROJECT_ID_ANDA",
-  storageBucket: "PROJECT_ID_ANDA.appspot.com",
-  messagingSenderId: "SENDER_ID_ANDA",
-  appId: "APP_ID_ANDA"
+  apiKey: "AIzaSyAVoYEeOwl4Ndzq4J4FsIKmoc8zyzRtodQ",
+  authDomain: "parkir-premium.firebaseapp.com",
+  databaseURL: "https://parkir-premium-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "parkir-premium",
+  storageBucket: "parkir-premium.firebasestorage.app",
+  messagingSenderId: "768016342610",
+  appId: "1:768016342610:web:d4b4ec374f54fe64d9c98b",
+  measurementId: "G-5QBVK8W2M0"
 };
 
 let db;
