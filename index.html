@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistem Informasi Sekolah – Kabupaten Ende</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 
+  ============================================================
+  📋 INFORMASI LOGIN (Hanya untuk Developer / Administrator)
+  ============================================================
+  Sekolah: 
+    - Username = NPSN Sekolah (contoh: 70027792)
+    - Password = sekolah123
+  
+  Admin Dinas: 
+    - Username = admin
+    - Password = admin2026
+  ============================================================
+-->
+
+<!-- ============ LOGIN PAGE ============ -->
+<!-- ============ LOGIN PAGE ============ -->
+<div class="login-page" id="loginPage">
+  <!-- Animated Background -->
+  <div class="login-bg">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-circle bg-circle-3"></div>
+    <div class="bg-pattern"></div>
+  </div>
+
+  <!-- Login Container -->
+  <div class="login-container">
+    <!-- Left: Branding -->
+    <div class="login-brand">
+      <div class="brand-content">
+        <div class="brand-icon">🏛️</div>
+        <h1>Sistem Informasi<br>Sekolah</h1>
+        <p class="brand-sub">Dinas Pendidikan Kabupaten Ende</p>
+        <p class="brand-sub2">Provinsi Nusa Tenggara Timur</p>
+        <div class="brand-features">
+          <div class="feature-item">
+            <span class="feature-icon">📊</span>
+            <span>Monitoring Media Sekolah</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📸</span>
+            <span>Dokumentasi Digital Terpadu</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🔒</span>
+            <span>Akses Aman & Terpercaya</span>
+          </div>
+        </div>
+      </div>
+      <div class="brand-footer">
+        © 2026 Dinas Pendidikan Kab. Ende
+      </div>
+    </div>
+
+    <!-- Right: Form -->
+    <div class="login-form-wrap">
+      <div class="login-box">
+        <div class="login-header">
+          <img src="logo.png" alt="Logo" class="login-logo-img" onerror="this.style.display='none'">
+          <h2>Selamat Datang</h2>
+          <p>Masuk ke akun Anda untuk melanjutkan</p>
+        </div>
+        
+        <div class="login-error" id="loginError">
+          <span class="error-icon">⚠️</span>
+          Username atau password salah!
+        </div>
+        
+        <form onsubmit="window.handleLogin(event)">
+          <div class="form-group-modern">
+            <label for="loginUser">Username</label>
+            <div class="input-wrap">
+              <span class="input-icon">👤</span>
+              <input type="text" id="loginUser" placeholder="NPSN Sekolah atau 'admin'" required autocomplete="username">
+            </div>
+          </div>
+          
+          <div class="form-group-modern">
+            <label for="loginPass">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔑</span>
+              <input type="password" id="loginPass" placeholder="Masukkan password" required autocomplete="current-password">
+            </div>
+          </div>
+          
+          <button type="submit" class="btn-login">
+            <span>Masuk</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+        
+        <div class="login-footer">
+          <p>Butuh bantuan? Hubungi admin Dinas Pendidikan</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div class="app" id="mainApp">
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <img src="logo.png" alt="Logo" class="header-logo-img" onerror="this.style.display='none'">
+        <div>
+          <div>Sistem Informasi Sekolah</div>
+          <div style="font-size:0.75rem; font-weight:400; opacity:0.85;">Kabupaten Ende – NTT</div>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="user-badge">
+          <span class="role-badge" id="userRole">-</span>
+          <span id="userName">-</span>
+        </div>
+        <button class="btn btn-sm btn-outline btn-white" onclick="window.showSection('profile')">⚙️ Profil</button>
+        <button class="btn btn-sm btn-danger" onclick="window.handleLogout()">🚪 Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- ✅ 1. DASHBOARD SECTION (Hanya 1, tanpa duplikat) -->
+    <div class="section active" id="section-dashboard">
+      <div class="dashboard-grid" id="dashboardGrid"></div>
+      
+      <!-- 🏆 Leaderboard Sekolah Terbaik -->
+      <div id="topSchoolsSection" style="display:none; margin-bottom:2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h2 style="margin:0;">🏆 Sekolah Teraktif (Top 5)</h2>
+          <span style="font-size:0.85rem; color:var(--muted);">Berdasarkan total media yang dikirim</span>
+        </div>
+        <div id="topSchoolsList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;"></div>
+      </div>
+      
+      <!-- Admin: Status Pengiriman Sekolah -->
+      <div id="adminStatusSection" style="margin-bottom:2rem;">
+        <h2 style="margin-bottom:1rem;">📊 Status Pengiriman Media Sekolah</h2>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+          <div class="dash-card success">
+            <div class="dash-label">✅ Sudah Kirim</div>
+            <div class="dash-value" id="countSudah">0</div>
+            <div class="dash-sub">Sekolah</div>
+          </div>
+          <div class="dash-card warning">
+            <div class="dash-label">⏳ Belum Kirim</div>
+            <div class="dash-value" id="countBelum">0</div>
+            <div class="dash-sub">Sekolah</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-label">📈 Persentase</div>
+            <div class="dash-value" id="countPersen">0%</div>
+            <div class="dash-sub">Sudah aktif</div>
+          </div>
+        </div>
+        
+        <div class="tabs">
+          <button class="tab-btn active" onclick="window.switchStatusTab('belum', this)">⏳ Belum Kirim (<span id="tabBelum">0</span>)</button>
+          <button class="tab-btn" onclick="window.switchStatusTab('sudah', this)">✅ Sudah Kirim (<span id="tabSudah">0</span>)</button>
+        </div>
+        
+        <div class="search-panel">
+          <div class="search-row">
+            <input type="text" class="search-input" id="searchStatus" placeholder="🔍 Cari nama sekolah atau kecamatan...">
+            <select class="filter-select" id="filterBentukStatus">
+              <option value="">Semua Bentuk</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nama Sekolah</th>
+                <th>NPSN</th>
+                <th>Bentuk</th>
+                <th>Kecamatan</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="statusTableBody"></tbody>
+          </table>
+          <div class="pagination" id="statusPagination"></div>
+        </div>
+      </div>
+
+      <!-- Admin: School List -->
+      <div id="adminSchoolList">
+        <h2 style="margin-bottom:1rem;">📊 Daftar Seluruh Sekolah</h2>
+        <div class="search-panel">
+          <div class="search-row">
+            <input type="text" class="search-input" id="searchSchool" placeholder="🔍 Cari nama sekolah, NPSN, atau kecamatan...">
+            <select class="filter-select" id="filterBentuk">
+              <option value="">Semua Bentuk</option>
+            </select>
+            <select class="filter-select" id="filterKec">
+              <option value="">Semua Kecamatan</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama Satuan Pendidikan</th>
+                <th>NPSN</th>
+                <th>Bentuk</th>
+                <th>Kecamatan</th>
+                <th>Media</th>
+              </tr>
+            </thead>
+            <tbody id="schoolTableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+    </div> <!-- ✅ Penutup section-dashboard yang benar -->
+    
+    <!-- ✅ 2. SEKOLAH MEDIA SECTION -->
+    <div class="section" id="section-sekolahMedia">
+      <h2 style="margin-bottom:1rem;">📁 Media Sekolah</h2>
+      
+      <div class="tabs">
+        <button class="tab-btn active" onclick="window.switchMediaTab('foto', this)">📸 Foto (<span id="countFoto">0</span>)</button>
+        <button class="tab-btn" onclick="window.switchMediaTab('video', this)">🎬 Video (<span id="countVideo">0</span>)</button>
+        <button class="tab-btn" onclick="window.switchMediaTab('dokumen', this)">📄 Dokumen (<span id="countDokumen">0</span>)</button>
+      </div>
+      
+      <div class="section active" id="media-foto">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3>Galeri Foto</h3>
+          <button class="btn btn-accent btn-sm" onclick="window.openMediaForm('foto')">+ Tambah Foto</button>
+        </div>
+        <div class="media-grid" id="gridFoto"></div>
+      </div>
+      
+      <div class="section" id="media-video">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3>Video Pembelajaran</h3>
+          <button class="btn btn-accent btn-sm" onclick="window.openMediaForm('video')">+ Tambah Video</button>
+        </div>
+        <div class="media-grid" id="gridVideo"></div>
+      </div>
+      
+      <div class="section" id="media-dokumen">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3>Dokumen Sekolah</h3>
+          <button class="btn btn-accent btn-sm" onclick="window.openMediaForm('dokumen')">+ Tambah Dokumen</button>
+        </div>
+        <div class="media-grid" id="gridDokumen"></div>
+      </div>
+    </div>
+    
+    <!-- ✅ 3. PROFILE SECTION -->
+    <div class="section" id="section-profile">
+      <h2 style="margin-bottom:1rem;">⚙️ Pengaturan Akun</h2>
+      <div class="school-info-card">
+        <h2 id="profileSchoolName">-</h2>
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">NPSN</div><div class="info-value" id="profileNpsn">-</div></div>
+          <div class="info-item"><div class="info-label">Bentuk Pendidikan</div><div class="info-value" id="profileBentuk">-</div></div>
+          <div class="info-item"><div class="info-label">Kecamatan</div><div class="info-value" id="profileKec">-</div></div>
+          <div class="info-item"><div class="info-label">Role</div><div class="info-value" id="profileRole">-</div></div>
+        </div>
+      </div>
+      
+      <div style="background:white; padding:1.5rem; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.08); max-width:500px;">
+        <h3 style="margin-bottom:1rem;">🔒 Ganti Password</h3>
+        <div class="form-group">
+          <label>Password Lama</label>
+          <input type="password" id="oldPass">
+        </div>
+        <div class="form-group">
+          <label>Password Baru</label>
+          <input type="password" id="newPass">
+        </div>
+        <div class="form-group">
+          <label>Konfirmasi Password Baru</label>
+          <input type="password" id="confirmPass">
+        </div>
+        <button class="btn" onclick="window.changePassword()">💾 Simpan Password</button>
+        <div id="passMsg" style="margin-top:1rem;"></div> <!-- ✅ PERBAIKAN: Ditambahkan tanda > -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form Media -->
+<div class="modal" id="formModal">
+  <div class="modal-content" style="max-width:500px;">
+    <button class="modal-close" onclick="window.closeForm()">✕</button>
+    <div style="padding:1.5rem;">
+      <h2 id="formTitle" style="margin-bottom:1rem;">Tambah Media</h2>
+      <form onsubmit="window.submitMedia(event)">
+        <div class="form-group">
+          <label>Judul / Kategori</label>
+          <select id="fTitleSelect" onchange="window.handleTitleSelect()" required>
+            <option value="">-- Pilih Judul --</option>
+          </select>
+          <div class="form-hint">Pilih judul yang sudah tersedia, atau pilih "Lainnya" untuk mengetik manual.</div>
+        </div>
+        <div class="form-group" id="fTitleCustomGroup" style="display:none;">
+          <label>Judul Custom</label>
+          <input type="text" id="fTitleCustom" placeholder="Ketik judul di sini...">
+        </div>
+        <div class="form-group">
+          <label>Deskripsi (Opsional)</label>
+          <textarea id="fDesc" rows="2" placeholder="Tambahkan keterangan jika perlu..."></textarea>
+        </div>
+        <div class="form-group">
+          <label id="fUrlLabel">URL</label>
+          <input type="url" id="fUrl" required>
+          <div class="form-hint" id="fUrlHint"></div>
+        </div>
+        <div class="form-group" id="fFileGroup" style="display:none;">
+          <label>Atau Upload File Gambar</label>
+          <input type="file" id="fFile" accept="image/*">
+        </div>
+        <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+          <button type="button" class="btn" style="background:#94a3b8;" onclick="window.closeForm()">Batal</button>
+          <button type="submit" class="btn">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Preview -->
+<div class="modal" id="previewModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="window.closePreview()">✕</button>
+    <div id="previewContent"></div>
+  </div>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
