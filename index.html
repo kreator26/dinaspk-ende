@@ -19,8 +19,6 @@
   Admin Dinas: 
     - Username = admin
     - Password = admin2026
-  
-  ⚠️ Catatan: Password dapat diubah setelah login di menu Pengaturan.
   ============================================================
 -->
 
@@ -28,14 +26,14 @@
 <div class="login-page" id="loginPage">
   <div class="login-box">
     <div class="login-logo">
-      <img src="logo.png" alt="Logo" class="login-logo-img">
+      <img src="logo.png" alt="Logo" class="login-logo-img" onerror="this.style.display='none'">
       <h1>Sistem Informasi Sekolah</h1>
       <p>Kabupaten Ende – NTT</p>
     </div>
     
     <div class="login-error" id="loginError">Username atau password salah!</div>
     
-    <form onsubmit="handleLogin(event)">
+    <form onsubmit="window.handleLogin(event)">
       <div class="form-group">
         <label>Username</label>
         <input type="text" id="loginUser" placeholder="Masukkan NPSN atau 'admin'" required>
@@ -54,7 +52,7 @@
   <header>
     <div class="header-inner">
       <div class="logo">
-        <img src="logo.png" alt="Logo" class="header-logo-img">
+        <img src="logo.png" alt="Logo" class="header-logo-img" onerror="this.style.display='none'">
         <div>
           <div>Sistem Informasi Sekolah</div>
           <div style="font-size:0.75rem; font-weight:400; opacity:0.85;">Kabupaten Ende – NTT</div>
@@ -65,17 +63,82 @@
           <span class="role-badge" id="userRole">-</span>
           <span id="userName">-</span>
         </div>
-        <button class="btn btn-sm btn-outline btn-white" onclick="showSection('profile')">⚙️ Profil</button>
-        <button class="btn btn-sm btn-danger" onclick="handleLogout()">🚪 Logout</button>
+        <button class="btn btn-sm btn-outline btn-white" onclick="window.showSection('profile')">⚙️ Profil</button>
+        <button class="btn btn-sm btn-danger" onclick="window.handleLogout()">🚪 Logout</button>
       </div>
     </div>
   </header>
 
   <div class="container">
-    <!-- DASHBOARD SECTION -->
+    
+    <!-- ✅ 1. DASHBOARD SECTION (Hanya 1, tanpa duplikat) -->
     <div class="section active" id="section-dashboard">
       <div class="dashboard-grid" id="dashboardGrid"></div>
       
+      <!-- 🏆 Leaderboard Sekolah Terbaik -->
+      <div id="topSchoolsSection" style="display:none; margin-bottom:2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h2 style="margin:0;">🏆 Sekolah Teraktif (Top 5)</h2>
+          <span style="font-size:0.85rem; color:var(--muted);">Berdasarkan total media yang dikirim</span>
+        </div>
+        <div id="topSchoolsList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;"></div>
+      </div>
+      
+      <!-- Admin: Status Pengiriman Sekolah -->
+      <div id="adminStatusSection" style="margin-bottom:2rem;">
+        <h2 style="margin-bottom:1rem;">📊 Status Pengiriman Media Sekolah</h2>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+          <div class="dash-card success">
+            <div class="dash-label">✅ Sudah Kirim</div>
+            <div class="dash-value" id="countSudah">0</div>
+            <div class="dash-sub">Sekolah</div>
+          </div>
+          <div class="dash-card warning">
+            <div class="dash-label">⏳ Belum Kirim</div>
+            <div class="dash-value" id="countBelum">0</div>
+            <div class="dash-sub">Sekolah</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-label">📈 Persentase</div>
+            <div class="dash-value" id="countPersen">0%</div>
+            <div class="dash-sub">Sudah aktif</div>
+          </div>
+        </div>
+        
+        <div class="tabs">
+          <button class="tab-btn active" onclick="window.switchStatusTab('belum', this)">⏳ Belum Kirim (<span id="tabBelum">0</span>)</button>
+          <button class="tab-btn" onclick="window.switchStatusTab('sudah', this)">✅ Sudah Kirim (<span id="tabSudah">0</span>)</button>
+        </div>
+        
+        <div class="search-panel">
+          <div class="search-row">
+            <input type="text" class="search-input" id="searchStatus" placeholder="🔍 Cari nama sekolah atau kecamatan...">
+            <select class="filter-select" id="filterBentukStatus">
+              <option value="">Semua Bentuk</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nama Sekolah</th>
+                <th>NPSN</th>
+                <th>Bentuk</th>
+                <th>Kecamatan</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="statusTableBody"></tbody>
+          </table>
+          <div class="pagination" id="statusPagination"></div>
+        </div>
+      </div>
+
       <!-- Admin: School List -->
       <div id="adminSchoolList">
         <h2 style="margin-bottom:1rem;">📊 Daftar Seluruh Sekolah</h2>
@@ -106,41 +169,44 @@
           <div class="pagination" id="pagination"></div>
         </div>
       </div>
+    </div> <!-- ✅ Penutup section-dashboard yang benar -->
+    
+    <!-- ✅ 2. SEKOLAH MEDIA SECTION -->
+    <div class="section" id="section-sekolahMedia">
+      <h2 style="margin-bottom:1rem;">📁 Media Sekolah</h2>
       
-      <!-- Sekolah: My Media -->
-      <div id="sekolahMediaSection" style="display:none;">
-        <h2 style="margin-bottom:1rem;">📁 Media Sekolah Saya</h2>
-        <div class="tabs">
-          <button class="tab-btn active" onclick="switchMediaTab('foto', this)">📸 Foto (<span id="countFoto">0</span>)</button>
-          <button class="tab-btn" onclick="switchMediaTab('video', this)">🎬 Video (<span id="countVideo">0</span>)</button>
-          <button class="tab-btn" onclick="switchMediaTab('dokumen', this)">📄 Dokumen (<span id="countDokumen">0</span>)</button>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="window.switchMediaTab('foto', this)">📸 Foto (<span id="countFoto">0</span>)</button>
+        <button class="tab-btn" onclick="window.switchMediaTab('video', this)">🎬 Video (<span id="countVideo">0</span>)</button>
+        <button class="tab-btn" onclick="window.switchMediaTab('dokumen', this)">📄 Dokumen (<span id="countDokumen">0</span>)</button>
+      </div>
+      
+      <div class="section active" id="media-foto">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3>Galeri Foto</h3>
+          <button class="btn btn-accent btn-sm" onclick="window.openMediaForm('foto')">+ Tambah Foto</button>
         </div>
-        
-        <div class="section active" id="media-foto">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-            <h3>Galeri Foto</h3>
-            <button class="btn btn-accent btn-sm" onclick="openMediaForm('foto')">+ Tambah Foto</button>
-          </div>
-          <div class="media-grid" id="gridFoto"></div>
+        <div class="media-grid" id="gridFoto"></div>
+      </div>
+      
+      <div class="section" id="media-video">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3>Video Pembelajaran</h3>
+          <button class="btn btn-accent btn-sm" onclick="window.openMediaForm('video')">+ Tambah Video</button>
         </div>
-        <div class="section" id="media-video">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-            <h3>Video Pembelajaran</h3>
-            <button class="btn btn-accent btn-sm" onclick="openMediaForm('video')">+ Tambah Video</button>
-          </div>
-          <div class="media-grid" id="gridVideo"></div>
+        <div class="media-grid" id="gridVideo"></div>
+      </div>
+      
+      <div class="section" id="media-dokumen">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3>Dokumen Sekolah</h3>
+          <button class="btn btn-accent btn-sm" onclick="window.openMediaForm('dokumen')">+ Tambah Dokumen</button>
         </div>
-        <div class="section" id="media-dokumen">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-            <h3>Dokumen Sekolah</h3>
-            <button class="btn btn-accent btn-sm" onclick="openMediaForm('dokumen')">+ Tambah Dokumen</button>
-          </div>
-          <div class="media-grid" id="gridDokumen"></div>
-        </div>
+        <div class="media-grid" id="gridDokumen"></div>
       </div>
     </div>
     
-    <!-- PROFILE SECTION -->
+    <!-- ✅ 3. PROFILE SECTION -->
     <div class="section" id="section-profile">
       <h2 style="margin-bottom:1rem;">⚙️ Pengaturan Akun</h2>
       <div class="school-info-card">
@@ -167,8 +233,8 @@
           <label>Konfirmasi Password Baru</label>
           <input type="password" id="confirmPass">
         </div>
-        <button class="btn" onclick="changePassword()">💾 Simpan Password</button>
-        <div id="passMsg" style="margin-top:1rem;"></div>
+        <button class="btn" onclick="window.changePassword()">💾 Simpan Password</button>
+        <div id="passMsg" style="margin-top:1rem;"></div> <!-- ✅ PERBAIKAN: Ditambahkan tanda > -->
       </div>
     </div>
   </div>
@@ -177,13 +243,13 @@
 <!-- Modal Form Media -->
 <div class="modal" id="formModal">
   <div class="modal-content" style="max-width:500px;">
-    <button class="modal-close" onclick="closeForm()">✕</button>
+    <button class="modal-close" onclick="window.closeForm()">✕</button>
     <div style="padding:1.5rem;">
       <h2 id="formTitle" style="margin-bottom:1rem;">Tambah Media</h2>
-      <form onsubmit="submitMedia(event)">
+      <form onsubmit="window.submitMedia(event)">
         <div class="form-group">
           <label>Judul / Kategori</label>
-          <select id="fTitleSelect" onchange="handleTitleSelect()" required>
+          <select id="fTitleSelect" onchange="window.handleTitleSelect()" required>
             <option value="">-- Pilih Judul --</option>
           </select>
           <div class="form-hint">Pilih judul yang sudah tersedia, atau pilih "Lainnya" untuk mengetik manual.</div>
@@ -206,7 +272,7 @@
           <input type="file" id="fFile" accept="image/*">
         </div>
         <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
-          <button type="button" class="btn" style="background:#94a3b8;" onclick="closeForm()">Batal</button>
+          <button type="button" class="btn" style="background:#94a3b8;" onclick="window.closeForm()">Batal</button>
           <button type="submit" class="btn">Simpan</button>
         </div>
       </form>
@@ -217,7 +283,7 @@
 <!-- Modal Preview -->
 <div class="modal" id="previewModal">
   <div class="modal-content">
-    <button class="modal-close" onclick="closePreview()">✕</button>
+    <button class="modal-close" onclick="window.closePreview()">✕</button>
     <div id="previewContent"></div>
   </div>
 </div>
