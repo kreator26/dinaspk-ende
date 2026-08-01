@@ -1,3 +1,8 @@
+// ============================================================
+// SISTEM INFORMASI SEKOLAH - KABUPATEN ENDE
+// File: script.js (Versi Multi-Page: login.html + dashboard.html)
+// ============================================================
+
 // ============ DATA SEKOLAH ============
 const RAW_DATA = `KB ARARA	70027792	KB	Ende
 KB Arrahman Watubara	70005156	KB	Wewaria
@@ -703,6 +708,7 @@ TKS ST.FRANSISKUS XAVERIUS WOLOTOPO	50305504	TK	Ndona
 TKS SYALOOM	50305464	TK	Ende Tengah
 TKS WOLOOJA	50305517	TK	Wolowaru`;
 
+// Parse data sekolah
 const schools = RAW_DATA.split('\n').filter(l => l.trim()).map((line, idx) => {
   const parts = line.split('\t');
   return {
@@ -714,7 +720,7 @@ const schools = RAW_DATA.split('\n').filter(l => l.trim()).map((line, idx) => {
   };
 });
 
-// ============ DAFTAR JUDUL OTOMATIS (PREDEFINED TITLES) ============
+// ============ DAFTAR JUDUL OTOMATIS ============
 const PREDEFINED_TITLES = {
   foto: [
     "Upacara Bendera",
@@ -806,9 +812,17 @@ function saveMedia(m) {
 
 let currentUser = null;
 
-// ============ LOGIN / LOGOUT ============
+// ============ DETEKSI HALAMAN ============
+const isLoginPage = document.getElementById('loginPage') !== null;
+const isDashboardPage = document.getElementById('mainApp') !== null;
+
+// ============ LOGIN (Hanya di login.html) ============
+if (isLoginPage) {
+  document.getElementById('loginForm').addEventListener('submit', handleLogin);
+}
+
 function handleLogin(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
   const errEl = document.getElementById('loginError');
@@ -816,7 +830,7 @@ function handleLogin(e) {
   if (user.toLowerCase() === 'admin' && pass === DEFAULT_ADMIN_PASS) {
     currentUser = { type: 'admin' };
     localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
-    showApp();
+    window.location.href = 'dashboard.html';
     return;
   }
   
@@ -824,7 +838,7 @@ function handleLogin(e) {
   if (school && pass === getSchoolPassword(school.npsn)) {
     currentUser = { type: 'sekolah', schoolId: school.id, school };
     localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
-    showApp();
+    window.location.href = 'dashboard.html';
     return;
   }
   
@@ -832,20 +846,16 @@ function handleLogin(e) {
   setTimeout(() => errEl.classList.remove('show'), 3000);
 }
 
+// ============ LOGOUT (Hanya di dashboard.html) ============
 function handleLogout() {
   if (!confirm('Yakin ingin logout?')) return;
   currentUser = null;
   localStorage.removeItem(AUTH_KEY);
-  document.getElementById('mainApp').classList.remove('active');
-  document.getElementById('loginPage').style.display = 'flex';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
+  window.location.href = 'login.html';
 }
 
+// ============ SHOW APP (Hanya di dashboard.html) ============
 function showApp() {
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('mainApp').classList.add('active');
-  
   if (currentUser.type === 'admin') {
     document.getElementById('userRole').textContent = 'ADMIN DINAS';
     document.getElementById('userName').textContent = 'Administrator';
@@ -861,6 +871,28 @@ function showApp() {
   renderDashboard();
   if (currentUser.type === 'admin') renderSchoolTable();
   else renderMyMedia();
+}
+
+// ============ AUTO CHECK LOGIN (Hanya di dashboard.html) ============
+if (isDashboardPage) {
+  const savedAuth = localStorage.getItem(AUTH_KEY);
+  if (savedAuth) {
+    try {
+      currentUser = JSON.parse(savedAuth);
+      if (currentUser.type === 'sekolah') {
+        currentUser.school = schools.find(s => s.id === currentUser.schoolId);
+      }
+      if (currentUser && (currentUser.type === 'admin' || currentUser.school)) {
+        showApp();
+      } else {
+        window.location.href = 'login.html';
+      }
+    } catch(e) {
+      window.location.href = 'login.html';
+    }
+  } else {
+    window.location.href = 'login.html';
+  }
 }
 
 // ============ DASHBOARD ============
@@ -885,7 +917,7 @@ function renderDashboard() {
         <div class="dash-sub">Seluruh satuan pendidikan</div>
       </div>
       <div class="dash-card accent">
-        <div class="dash-label">📁 Sekolah dengan Media</div>
+        <div class="dash-label"> Sekolah dengan Media</div>
         <div class="dash-value">${schoolsWithMedia}</div>
         <div class="dash-sub">${((schoolsWithMedia/totalSchools)*100).toFixed(1)}% dari total</div>
       </div>
@@ -895,7 +927,7 @@ function renderDashboard() {
         <div class="dash-sub">Foto, video, dan dokumen</div>
       </div>
       <div class="dash-card warning">
-        <div class="dash-label">📸 Total Foto</div>
+        <div class="dash-label"> Total Foto</div>
         <div class="dash-value">${totalFoto}</div>
         <div class="dash-sub">Dari seluruh sekolah</div>
       </div>
@@ -909,7 +941,7 @@ function renderDashboard() {
         <div class="dash-value">${m.foto?.length || 0}</div>
       </div>
       <div class="dash-card accent">
-        <div class="dash-label"> Video</div>
+        <div class="dash-label">🎬 Video</div>
         <div class="dash-value">${m.video?.length || 0}</div>
       </div>
       <div class="dash-card success">
@@ -917,7 +949,7 @@ function renderDashboard() {
         <div class="dash-value">${m.dokumen?.length || 0}</div>
       </div>
       <div class="dash-card warning">
-        <div class="dash-label">📊 Total Media</div>
+        <div class="dash-label"> Total Media</div>
         <div class="dash-value">${total}</div>
       </div>
     `;
@@ -989,19 +1021,15 @@ function viewSchoolMedia(schoolId) {
   const school = schools.find(s => s.id === schoolId);
   if (!school) return;
 
-  // ✅ PERBAIKAN: Sembunyikan daftar sekolah, tampilkan section media
   document.getElementById('adminSchoolList').style.display = 'none';
   document.getElementById('sekolahMediaSection').style.display = 'block';
 
-  // Simpan user admin asli, lalu ubah sementara menjadi konteks sekolah yang diklik
   const origUser = currentUser;
   currentUser = { type: 'sekolah', schoolId, school };
   
-  // Render media sekolah tersebut
   renderMyMedia();
   showSection('dashboard');
 
-  // Tambahkan tombol kembali jika belum ada
   const section = document.getElementById('sekolahMediaSection');
   if (!document.getElementById('backBtn')) {
     const btn = document.createElement('button');
@@ -1010,7 +1038,6 @@ function viewSchoolMedia(schoolId) {
     btn.style.marginBottom = '1rem';
     btn.textContent = '← Kembali ke Daftar Sekolah';
     btn.onclick = () => {
-      // Kembalikan ke konteks Admin
       currentUser = origUser;
       document.getElementById('adminSchoolList').style.display = 'block';
       document.getElementById('sekolahMediaSection').style.display = 'none';
@@ -1050,7 +1077,7 @@ function switchMediaTab(tab, btn) {
 function renderFoto(items) {
   const grid = document.getElementById('gridFoto');
   if (!items.length) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📷</div>Belum ada foto</div>';
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon"></div>Belum ada foto</div>';
     return;
   }
   grid.innerHTML = items.map(i => `
@@ -1100,7 +1127,7 @@ function renderVideo(items) {
 function renderDokumen(items) {
   const grid = document.getElementById('gridDokumen');
   if (!items.length) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon"></div>Belum ada dokumen</div>';
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📄</div>Belum ada dokumen</div>';
     return;
   }
   grid.innerHTML = items.map(i => `
@@ -1141,14 +1168,12 @@ function openMediaForm(type) {
   const titles = { foto: 'Tambah Foto', video: 'Tambah Video', dokumen: 'Tambah Dokumen' };
   document.getElementById('formTitle').textContent = titles[type];
   
-  // Reset form
   document.getElementById('fDesc').value = '';
   document.getElementById('fUrl').value = '';
   document.getElementById('fFile').value = '';
   document.getElementById('fTitleCustom').value = '';
   document.getElementById('fTitleCustomGroup').style.display = 'none';
   
-  // Populate dropdown judul
   const select = document.getElementById('fTitleSelect');
   select.innerHTML = '<option value="">-- Pilih Judul --</option>';
   PREDEFINED_TITLES[type].forEach(title => {
@@ -1158,7 +1183,6 @@ function openMediaForm(type) {
     select.appendChild(option);
   });
   
-  // Setup file upload dan hint
   document.getElementById('fFileGroup').style.display = type === 'foto' ? 'block' : 'none';
   const hints = {
     foto: 'URL gambar atau upload file',
@@ -1178,7 +1202,6 @@ function closeForm() {
 function submitMedia(e) {
   e.preventDefault();
   
-  // Ambil judul dari select atau custom input
   const titleSelect = document.getElementById('fTitleSelect').value;
   const titleCustom = document.getElementById('fTitleCustom').value;
   const title = titleSelect === 'Lainnya (Ketik Manual)' ? titleCustom : titleSelect;
@@ -1311,48 +1334,52 @@ function changePassword() {
   document.getElementById('confirmPass').value = '';
 }
 
+// ============ UTILITIES ============
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// ============ FILTER EVENTS ============
-document.getElementById('searchSchool').addEventListener('input', () => { currentPage = 1; renderSchoolTable(); });
-document.getElementById('filterBentuk').addEventListener('change', () => { currentPage = 1; renderSchoolTable(); });
-document.getElementById('filterKec').addEventListener('change', () => { currentPage = 1; renderSchoolTable(); });
+// ============ FILTER EVENTS (Hanya di dashboard.html) ============
+if (isDashboardPage) {
+  document.getElementById('searchSchool').addEventListener('input', () => { currentPage = 1; renderSchoolTable(); });
+  document.getElementById('filterBentuk').addEventListener('change', () => { currentPage = 1; renderSchoolTable(); });
+  document.getElementById('filterKec').addEventListener('change', () => { currentPage = 1; renderSchoolTable(); });
 
-// Populate filters
-const bentukSet = new Set(schools.map(s => s.bentuk));
-const kecSet = new Set(schools.map(s => s.kecamatan));
-const bentukSelect = document.getElementById('filterBentuk');
-const kecSelect = document.getElementById('filterKec');
-[...bentukSet].sort().forEach(b => {
-  const opt = document.createElement('option');
-  opt.value = b; opt.textContent = b;
-  bentukSelect.appendChild(opt);
-});
-[...kecSet].sort().forEach(k => {
-  const opt = document.createElement('option');
-  opt.value = k; opt.textContent = k;
-  kecSelect.appendChild(opt);
-});
-
-// Close modals on backdrop
-document.querySelectorAll('.modal').forEach(m => {
-  m.addEventListener('click', e => {
-    if (e.target === m) m.classList.remove('active');
+  const bentukSet = new Set(schools.map(s => s.bentuk));
+  const kecSet = new Set(schools.map(s => s.kecamatan));
+  const bentukSelect = document.getElementById('filterBentuk');
+  const kecSelect = document.getElementById('filterKec');
+  [...bentukSet].sort().forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b; opt.textContent = b;
+    bentukSelect.appendChild(opt);
   });
-});
+  [...kecSet].sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k; opt.textContent = k;
+    kecSelect.appendChild(opt);
+  });
 
-// ============ AUTO LOGIN ============
-const savedAuth = localStorage.getItem(AUTH_KEY);
-if (savedAuth) {
+  document.querySelectorAll('.modal').forEach(m => {
+    m.addEventListener('click', e => {
+      if (e.target === m) m.classList.remove('active');
+    });
+  });
+}// ============ LOAD FOOTER DINAMIS ============
+async function loadFooter() {
   try {
-    currentUser = JSON.parse(savedAuth);
-    if (currentUser.type === 'sekolah') {
-      currentUser.school = schools.find(s => s.id === currentUser.schoolId);
+    const response = await fetch('footer.html');
+    if (response.ok) {
+      const footerHTML = await response.text();
+      const footerContainer = document.getElementById('footer-container');
+      if (footerContainer) {
+        footerContainer.innerHTML = footerHTML;
+      }
     }
-    if (currentUser && (currentUser.type === 'admin' || currentUser.school)) {
-      showApp();
-    }
-  } catch(e) {}
+  } catch (error) {
+    console.warn('Footer tidak dapat dimuat:', error);
+  }
 }
+
+// Panggil fungsi load footer saat halaman dimuat
+loadFooter();
