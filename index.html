@@ -23,27 +23,87 @@
 -->
 
 <!-- ============ LOGIN PAGE ============ -->
+<!-- ============ LOGIN PAGE ============ -->
 <div class="login-page" id="loginPage">
-  <div class="login-box">
-    <div class="login-logo">
-      <img src="logo.png" alt="Logo" class="login-logo-img" onerror="this.style.display='none'">
-      <h1>Sistem Informasi Sekolah</h1>
-      <p>Kabupaten Ende – NTT</p>
+  <!-- Animated Background -->
+  <div class="login-bg">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-circle bg-circle-3"></div>
+    <div class="bg-pattern"></div>
+  </div>
+
+  <!-- Login Container -->
+  <div class="login-container">
+    <!-- Left: Branding -->
+    <div class="login-brand">
+      <div class="brand-content">
+        <div class="brand-icon">🏛️</div>
+        <h1>Sistem Informasi<br>Sekolah</h1>
+        <p class="brand-sub">Dinas Pendidikan Kabupaten Ende</p>
+        <p class="brand-sub2">Provinsi Nusa Tenggara Timur</p>
+        <div class="brand-features">
+          <div class="feature-item">
+            <span class="feature-icon">📊</span>
+            <span>Monitoring Media Sekolah</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📸</span>
+            <span>Dokumentasi Digital Terpadu</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🔒</span>
+            <span>Akses Aman & Terpercaya</span>
+          </div>
+        </div>
+      </div>
+      <div class="brand-footer">
+        © 2026 Dinas Pendidikan Kab. Ende
+      </div>
     </div>
-    
-    <div class="login-error" id="loginError">Username atau password salah!</div>
-    
-    <form onsubmit="window.handleLogin(event)">
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="loginUser" placeholder="Masukkan NPSN atau 'admin'" required>
+
+    <!-- Right: Form -->
+    <div class="login-form-wrap">
+      <div class="login-box">
+        <div class="login-header">
+          <img src="logo.png" alt="Logo" class="login-logo-img" onerror="this.style.display='none'">
+          <h2>Selamat Datang</h2>
+          <p>Masuk ke akun Anda untuk melanjutkan</p>
+        </div>
+        
+        <div class="login-error" id="loginError">
+          <span class="error-icon">⚠️</span>
+          Username atau password salah!
+        </div>
+        
+        <form onsubmit="window.handleLogin(event)">
+          <div class="form-group-modern">
+            <label for="loginUser">Username</label>
+            <div class="input-wrap">
+              <span class="input-icon">👤</span>
+              <input type="text" id="loginUser" placeholder="NPSN Sekolah atau 'admin'" required autocomplete="username">
+            </div>
+          </div>
+          
+          <div class="form-group-modern">
+            <label for="loginPass">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔑</span>
+              <input type="password" id="loginPass" placeholder="Masukkan password" required autocomplete="current-password">
+            </div>
+          </div>
+          
+          <button type="submit" class="btn-login">
+            <span>Masuk</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+        
+        <div class="login-footer">
+          <p>Butuh bantuan? Hubungi admin Dinas Pendidikan</p>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="loginPass" placeholder="Masukkan password" required>
-      </div>
-      <button type="submit" class="btn btn-full">🔐 Masuk</button>
-    </form>
+    </div>
   </div>
 </div>
 
