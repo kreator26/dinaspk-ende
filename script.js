@@ -22,7 +22,7 @@ try {
   console.error("❌ Gagal inisialisasi Firebase:", error);
 }
 
-// ============ DATA SEKOLAH (LENGKAP) ============
+// ============ DATA SEKOLAH ============
 const RAW_DATA = `KB ARARA	70027792	KB	Ende
 KB Arrahman Watubara	70005156	KB	Wewaria
 KB FAJAR PAGI	70014378	KB	Kota Baru
@@ -748,6 +748,16 @@ const PREDEFINED_TITLES = {
 const AUTH_KEY = 'sisfo_auth';
 let currentUser = null;
 
+// ============ HELPER FUNCTIONS ============
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function extractYoutubeId(url) {
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
 // ============ FIREBASE DATABASE FUNCTIONS ============
 window.getPasswords = async function() {
   const docRef = doc(db, "sisfo_data", "passwords");
@@ -781,16 +791,6 @@ window.saveMedia = async function(mediaData) {
   const docRef = doc(db, "sisfo_data", "media_global");
   await setDoc(docRef, mediaData);
 };
-
-// ============ HELPER ============
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function extractYoutubeId(url) {
-  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
-  return m ? m[1] : null;
-}
 
 // ============ LOGIN / LOGOUT ============
 window.handleLogin = async function(e) {
@@ -839,6 +839,7 @@ window.handleLogout = function() {
   document.getElementById('loginPass').value = '';
 };
 
+// ============ SHOW APP ============
 window.showApp = async function() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('mainApp').classList.add('active');
@@ -881,9 +882,9 @@ window.renderDashboard = async function() {
     
     grid.innerHTML = `
       <div class="dash-card"><div class="dash-label">🏫 Total Sekolah</div><div class="dash-value">${totalSchools}</div><div class="dash-sub">Seluruh satuan pendidikan</div></div>
-      <div class="dash-card accent"><div class="dash-label">📁 Sekolah dengan Media</div><div class="dash-value">${schoolsWithMedia}</div><div class="dash-sub">${((schoolsWithMedia/totalSchools)*100).toFixed(1)}% dari total</div></div>
+      <div class="dash-card accent"><div class="dash-label"> Sekolah dengan Media</div><div class="dash-value">${schoolsWithMedia}</div><div class="dash-sub">${((schoolsWithMedia/totalSchools)*100).toFixed(1)}% dari total</div></div>
       <div class="dash-card success"><div class="dash-label">📊 Total Media</div><div class="dash-value">${totalMedia}</div><div class="dash-sub">Foto, video, dan dokumen</div></div>
-      <div class="dash-card warning"><div class="dash-label">📸 Total Foto</div><div class="dash-value">${totalFoto}</div><div class="dash-sub">Dari seluruh sekolah</div></div>
+      <div class="dash-card warning"><div class="dash-label"> Total Foto</div><div class="dash-value">${totalFoto}</div><div class="dash-sub">Dari seluruh sekolah</div></div>
     `;
     
     await window.renderTopSchools();
@@ -893,13 +894,13 @@ window.renderDashboard = async function() {
     grid.innerHTML = `
       <div class="dash-card"><div class="dash-label">📸 Foto</div><div class="dash-value">${m.foto?.length || 0}</div></div>
       <div class="dash-card accent"><div class="dash-label">🎬 Video</div><div class="dash-value">${m.video?.length || 0}</div></div>
-      <div class="dash-card success"><div class="dash-label">📄 Dokumen</div><div class="dash-value">${m.dokumen?.length || 0}</div></div>
+      <div class="dash-card success"><div class="dash-label"> Dokumen</div><div class="dash-value">${m.dokumen?.length || 0}</div></div>
       <div class="dash-card warning"><div class="dash-label">📊 Total Media</div><div class="dash-value">${total}</div></div>
     `;
   }
 };
 
-// ============ 🏆 TOP SCHOOLS LEADERBOARD ============
+// ============ 🏆 TOP SCHOOLS ============
 window.renderTopSchools = async function() {
   const container = document.getElementById('topSchoolsList');
   const section = document.getElementById('topSchoolsSection');
@@ -976,7 +977,7 @@ window.renderTopSchools = async function() {
       
       <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; margin-bottom:0.5rem;">
         <div style="text-align:center; padding:0.4rem; background:rgba(255,255,255,0.6); border-radius:8px;">
-          <div style="font-size:1.1rem;">📸</div>
+          <div style="font-size:1.1rem;"></div>
           <div style="font-weight:700; font-size:1rem;">${s.fotoCount}</div>
           <div style="font-size:0.65rem; color:#64748b;">Foto</div>
         </div>
@@ -1467,6 +1468,7 @@ window.switchStatusTab = function(tab, btn) {
   window.renderStatusTable();
 };
 
+// ✅ PERBAIKAN: Pastikan fungsi ini didefinisikan sebagai window.renderStatusSection
 window.renderStatusSection = async function() {
   const media = await window.getMedia();
   
@@ -1530,7 +1532,7 @@ window.renderStatusTable = async function() {
       if (statusTab === 'sudah') {
         statusBadge = `<span class="badge badge-SD" style="background:#d1fae5; color:#065f46;">✅ Aktif</span>
           <div style="font-size:0.75rem; color:var(--muted); margin-top:0.25rem;">
-            📸 ${fotoCount} | 🎬 ${videoCount} | 📄 ${dokumenCount}
+            📸 ${fotoCount} |  ${videoCount} | 📄 ${dokumenCount}
           </div>`;
       } else {
         statusBadge = `<span class="badge" style="background:#fef3c7; color:#92400e;">⏳ Belum</span>`;
