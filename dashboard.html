@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Sistem Informasi Sekolah</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app active" id="mainApp">
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <img src="logo.png" alt="Logo" class="header-logo-img">
+        <div>
+          <div>Sistem Informasi Sekolah</div>
+          <div style="font-size:0.75rem; font-weight:400; opacity:0.85;">Kabupaten Ende – NTT</div>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="user-badge">
+          <span class="role-badge" id="userRole">-</span>
+          <span id="userName">-</span>
+        </div>
+        <button class="btn btn-sm btn-outline btn-white" onclick="showSection('profile')">⚙️ Profil</button>
+        <button class="btn btn-sm btn-danger" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- DASHBOARD SECTION -->
+    <div class="section active" id="section-dashboard">
+      <div class="dashboard-grid" id="dashboardGrid"></div>
+      
+      <!-- Admin: School List -->
+      <div id="adminSchoolList">
+        <h2 style="margin-bottom:1rem;"> Daftar Seluruh Sekolah</h2>
+        <div class="search-panel">
+          <div class="search-row">
+            <input type="text" class="search-input" id="searchSchool" placeholder=" Cari nama sekolah, NPSN, atau kecamatan...">
+            <select class="filter-select" id="filterBentuk"><option value="">Semua Bentuk</option></select>
+            <select class="filter-select" id="filterKec"><option value="">Semua Kecamatan</option></select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama Satuan Pendidikan</th>
+                <th>NPSN</th>
+                <th>Bentuk</th>
+                <th>Kecamatan</th>
+                <th>Media</th>
+              </tr>
+            </thead>
+            <tbody id="schoolTableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+      
+      <!-- Sekolah: My Media -->
+      <div id="sekolahMediaSection" style="display:none;">
+        <h2 style="margin-bottom:1rem;">📁 Media Sekolah Saya</h2>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchMediaTab('foto', this)">📸 Foto (<span id="countFoto">0</span>)</button>
+          <button class="tab-btn" onclick="switchMediaTab('video', this)">🎬 Video (<span id="countVideo">0</span>)</button>
+          <button class="tab-btn" onclick="switchMediaTab('dokumen', this)">📄 Dokumen (<span id="countDokumen">0</span>)</button>
+        </div>
+        
+        <div class="section active" id="media-foto">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h3>Galeri Foto</h3>
+            <button class="btn btn-accent btn-sm" onclick="openMediaForm('foto')">+ Tambah Foto</button>
+          </div>
+          <div class="media-grid" id="gridFoto"></div>
+        </div>
+        <div class="section" id="media-video">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h3>Video Pembelajaran</h3>
+            <button class="btn btn-accent btn-sm" onclick="openMediaForm('video')">+ Tambah Video</button>
+          </div>
+          <div class="media-grid" id="gridVideo"></div>
+        </div>
+        <div class="section" id="media-dokumen">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h3>Dokumen Sekolah</h3>
+            <button class="btn btn-accent btn-sm" onclick="openMediaForm('dokumen')">+ Tambah Dokumen</button>
+          </div>
+          <div class="media-grid" id="gridDokumen"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- PROFILE SECTION -->
+    <div class="section" id="section-profile">
+      <h2 style="margin-bottom:1rem;">⚙️ Pengaturan Akun</h2>
+      <div class="school-info-card">
+        <h2 id="profileSchoolName">-</h2>
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">NPSN</div><div class="info-value" id="profileNpsn">-</div></div>
+          <div class="info-item"><div class="info-label">Bentuk Pendidikan</div><div class="info-value" id="profileBentuk">-</div></div>
+          <div class="info-item"><div class="info-label">Kecamatan</div><div class="info-value" id="profileKec">-</div></div>
+          <div class="info-item"><div class="info-label">Role</div><div class="info-value" id="profileRole">-</div></div>
+        </div>
+      </div>
+      
+      <div style="background:white; padding:1.5rem; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.08); max-width:500px;">
+        <h3 style="margin-bottom:1rem;"> Ganti Password</h3>
+        <div class="form-group"><label>Password Lama</label><input type="password" id="oldPass"></div>
+        <div class="form-group"><label>Password Baru</label><input type="password" id="newPass"></div>
+        <div class="form-group"><label>Konfirmasi Password Baru</label><input type="password" id="confirmPass"></div>
+        <button class="btn" onclick="changePassword()">💾 Simpan Password</button>
+        <div id="passMsg" style="margin-top:1rem;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form Media -->
+<div class="modal" id="formModal">
+  <div class="modal-content" style="max-width:500px;">
+    <button class="modal-close" onclick="closeForm()">✕</button>
+    <div style="padding:1.5rem;">
+      <h2 id="formTitle" style="margin-bottom:1rem;">Tambah Media</h2>
+      <form onsubmit="submitMedia(event)">
+        <div class="form-group">
+          <label>Judul / Kategori</label>
+          <select id="fTitleSelect" onchange="handleTitleSelect()" required>
+            <option value="">-- Pilih Judul --</option>
+          </select>
+          <div class="form-hint">Pilih judul yang sudah tersedia, atau pilih "Lainnya" untuk mengetik manual.</div>
+        </div>
+        <div class="form-group" id="fTitleCustomGroup" style="display:none;">
+          <label>Judul Custom</label>
+          <input type="text" id="fTitleCustom" placeholder="Ketik judul di sini...">
+        </div>
+        <div class="form-group">
+          <label>Deskripsi (Opsional)</label>
+          <textarea id="fDesc" rows="2" placeholder="Tambahkan keterangan jika perlu..."></textarea>
+        </div>
+        <div class="form-group">
+          <label id="fUrlLabel">URL</label>
+          <input type="url" id="fUrl" required>
+          <div class="form-hint" id="fUrlHint"></div>
+        </div>
+        <div class="form-group" id="fFileGroup" style="display:none;">
+          <label>Atau Upload File Gambar</label>
+          <input type="file" id="fFile" accept="image/*">
+        </div>
+        <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+          <button type="button" class="btn" style="background:#94a3b8;" onclick="closeForm()">Batal</button>
+          <button type="submit" class="btn">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Preview -->
+<div class="modal" id="previewModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closePreview()">✕</button>
+    <div id="previewContent"></div>
+  </div>
+</div>
+
+<!-- Container untuk footer yang akan dimuat secara dinamis -->
+<div id="footer-container"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
