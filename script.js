@@ -1,4 +1,27 @@
-// ============ DATA SEKOLAH ============
+// ============ FIREBASE SETUP ============
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// ⚠️ PENTING: GANTI DENGAN KONFIGURASI FIREBASE ANDA SENDIRI
+const firebaseConfig = {
+  apiKey: "GANTI_DENGAN_API_KEY_ANDA",
+  authDomain: "PROJECT_ID_ANDA.firebaseapp.com",
+  projectId: "PROJECT_ID_ANDA",
+  storageBucket: "PROJECT_ID_ANDA.appspot.com",
+  messagingSenderId: "SENDER_ID_ANDA",
+  appId: "APP_ID_ANDA"
+};
+
+let db;
+try {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  console.log("✅ Firebase berhasil diinisialisasi");
+} catch (error) {
+  console.error("❌ Gagal inisialisasi Firebase. Pastikan firebaseConfig sudah diisi dengan benar!", error);
+}
+
+// ============ DATA SEKOLAH (LENGKAP) ============
 const RAW_DATA = `KB ARARA	70027792	KB	Ende
 KB Arrahman Watubara	70005156	KB	Wewaria
 KB FAJAR PAGI	70014378	KB	Kota Baru
@@ -714,125 +737,114 @@ const schools = RAW_DATA.split('\n').filter(l => l.trim()).map((line, idx) => {
   };
 });
 
-// ============ DAFTAR JUDUL OTOMATIS (PREDEFINED TITLES) ============
+// ============ DAFTAR JUDUL OTOMATIS ============
 const PREDEFINED_TITLES = {
-  foto: [
-    "Upacara Bendera",
-    "Kegiatan Belajar Mengajar",
-    "Perpustakaan Sekolah",
-    "Laboratorium Komputer",
-    "Kantin Sekolah",
-    "Lapangan Olahraga",
-    "Musholla / Ruang Ibadah",
-    "Ruang Guru",
-    "Ruang Kepala Sekolah",
-    "Ruang UKS",
-    "Ekstrakurikuler",
-    "Kunjungan Edukatif",
-    "Peringatan Hari Besar",
-    "Lomba Antar Kelas",
-    "Wisuda / Pelepasan Siswa",
-    "Rapat Dewan Guru",
-    "Kegiatan Pramuka",
-    "Gotong Royong Sekolah",
-    "Fasilitas Sekolah",
-    "Prestasi Siswa",
-    "Lainnya (Ketik Manual)"
-  ],
-  video: [
-    "Video Profil Sekolah",
-    "Video Kegiatan Upacara",
-    "Video Pembelajaran di Kelas",
-    "Video Kegiatan Ekstrakurikuler",
-    "Video Peringatan Hari Besar",
-    "Video Lomba / Kompetisi",
-    "Video Kunjungan Edukatif",
-    "Video Tutorial / Edukasi",
-    "Video Dokumentasi Kegiatan",
-    "Video Wawancara / Testimoni",
-    "Video Pengumuman Sekolah",
-    "Lainnya (Ketik Manual)"
-  ],
-  dokumen: [
-    "Kurikulum Sekolah",
-    "Data Siswa",
-    "Data Guru dan Tenaga Kependidikan",
-    "Laporan Keuangan",
-    "Rencana Kerja Sekolah (RKS)",
-    "Program Kerja Tahunan",
-    "Laporan Evaluasi",
-    "Surat Keputusan (SK)",
-    "Notulen Rapat",
-    "Dokumen Akreditasi",
-    "Dokumen BOS",
-    "Panduan / Pedoman",
-    "Formulir Pendaftaran",
-    "Kalender Pendidikan",
-    "Struktur Organisasi",
-    "Lainnya (Ketik Manual)"
-  ]
+  foto: ["Upacara Bendera", "Kegiatan Belajar Mengajar", "Perpustakaan Sekolah", "Laboratorium Komputer", "Kantin Sekolah", "Lapangan Olahraga", "Musholla / Ruang Ibadah", "Ruang Guru", "Ruang Kepala Sekolah", "Ruang UKS", "Ekstrakurikuler", "Kunjungan Edukatif", "Peringatan Hari Besar", "Lomba Antar Kelas", "Wisuda / Pelepasan Siswa", "Rapat Dewan Guru", "Kegiatan Pramuka", "Gotong Royong Sekolah", "Fasilitas Sekolah", "Prestasi Siswa", "Lainnya (Ketik Manual)"],
+  video: ["Video Profil Sekolah", "Video Kegiatan Upacara", "Video Pembelajaran di Kelas", "Video Kegiatan Ekstrakurikuler", "Video Peringatan Hari Besar", "Video Lomba / Kompetisi", "Video Kunjungan Edukatif", "Video Tutorial / Edukasi", "Video Dokumentasi Kegiatan", "Video Wawancara / Testimoni", "Video Pengumuman Sekolah", "Lainnya (Ketik Manual)"],
+  dokumen: ["Kurikulum Sekolah", "Data Siswa", "Data Guru dan Tenaga Kependidikan", "Laporan Keuangan", "Rencana Kerja Sekolah (RKS)", "Program Kerja Tahunan", "Laporan Evaluasi", "Surat Keputusan (SK)", "Notulen Rapat", "Dokumen Akreditasi", "Dokumen BOS", "Panduan / Pedoman", "Formulir Pendaftaran", "Kalender Pendidikan", "Struktur Organisasi", "Lainnya (Ketik Manual)"]
 };
 
-// ============ AUTH SYSTEM ============
 const AUTH_KEY = 'sisfo_auth';
-const MEDIA_KEY = 'sisfo_media';
-const PASS_KEY = 'sisfo_passwords';
 
-const DEFAULT_SCHOOL_PASS = 'sekolah123';
-const DEFAULT_ADMIN_PASS = 'admin2026';
+// ============ FIREBASE DATABASE FUNCTIONS ============
+window.getPasswords = async function() {
+  const docRef = doc(db, "sisfo_data", "passwords");
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists() ? docSnap.data() : {};
+};
 
-function getPasswords() {
-  return JSON.parse(localStorage.getItem(PASS_KEY) || '{}');
-}
-function savePasswords(p) {
-  localStorage.setItem(PASS_KEY, JSON.stringify(p));
-}
-function getSchoolPassword(npsn) {
-  const p = getPasswords();
-  return p[npsn] || DEFAULT_SCHOOL_PASS;
-}
-function setSchoolPassword(npsn, pass) {
-  const p = getPasswords();
+window.savePasswords = async function(p) {
+  const docRef = doc(db, "sisfo_data", "passwords");
+  await setDoc(docRef, p);
+};
+
+window.getSchoolPassword = async function(npsn) {
+  const p = await window.getPasswords();
+  return p[npsn] || 'sekolah123';
+};
+
+window.setSchoolPassword = async function(npsn, pass) {
+  const p = await window.getPasswords();
   p[npsn] = pass;
-  savePasswords(p);
-}
+  await window.savePasswords(p);
+};
 
-function getMedia() {
-  return JSON.parse(localStorage.getItem(MEDIA_KEY) || '{}');
-}
-function saveMedia(m) {
-  localStorage.setItem(MEDIA_KEY, JSON.stringify(m));
-}
+window.getMedia = async function() {
+  const docRef = doc(db, "sisfo_data", "media_global");
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists() ? docSnap.data() : {};
+};
+
+window.saveMedia = async function(mediaData) {
+  const docRef = doc(db, "sisfo_data", "media_global");
+  await setDoc(docRef, mediaData);
+};
 
 let currentUser = null;
 
-// ============ LOGIN / LOGOUT ============
-function handleLogin(e) {
+// ============ LOGIN / LOGOUT (DENGAN DEBUG LOG) ============
+window.handleLogin = async function(e) {
   e.preventDefault();
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
   const errEl = document.getElementById('loginError');
   
-  if (user.toLowerCase() === 'admin' && pass === DEFAULT_ADMIN_PASS) {
-    currentUser = { type: 'admin' };
-    localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
-    showApp();
-    return;
-  }
-  
-  const school = schools.find(s => s.npsn === user);
-  if (school && pass === getSchoolPassword(school.npsn)) {
-    currentUser = { type: 'sekolah', schoolId: school.id, school };
-    localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
-    showApp();
-    return;
-  }
-  
-  errEl.classList.add('show');
-  setTimeout(() => errEl.classList.remove('show'), 3000);
-}
+  console.log("🔍 Mencoba login...");
+  console.log("Username:", user);
+  console.log("Password:", pass);
 
-function handleLogout() {
+  try {
+    // 1. Cek Login Admin
+    if (user.toLowerCase() === 'admin') {
+      const p = await window.getPasswords();
+      const adminPass = p['_admin'] || 'admin2026';
+      console.log("Password admin di database:", adminPass);
+      
+      if (pass === adminPass) {
+        currentUser = { type: 'admin' };
+        localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
+        console.log("✅ Login Admin Berhasil!");
+        await window.showApp();
+        return;
+      } else {
+        console.log("❌ Password admin salah.");
+      }
+    } 
+    // 2. Cek Login Sekolah
+    else {
+      const school = schools.find(s => s.npsn === user);
+      console.log("Data sekolah ditemukan:", school ? "Ya (" + school.nama + ")" : "Tidak");
+      
+      if (school) {
+        const correctPass = await window.getSchoolPassword(school.npsn);
+        console.log("Password sekolah di database:", correctPass);
+        
+        if (pass === correctPass) {
+          currentUser = { type: 'sekolah', schoolId: school.id, school };
+          localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
+          console.log("✅ Login Sekolah Berhasil!");
+          await window.showApp();
+          return;
+        } else {
+          console.log("❌ Password sekolah salah.");
+        }
+      } else {
+        console.log("❌ NPSN tidak ditemukan di data.");
+      }
+    }
+    
+    // Jika sampai sini, berarti login gagal
+    console.warn("⚠️ Username atau password salah!");
+    errEl.classList.add('show');
+    setTimeout(() => errEl.classList.remove('show'), 3000);
+    
+  } catch (error) {
+    console.error("💥 ERROR SAAT LOGIN:", error);
+    alert("Terjadi kesalahan sistem. Pastikan konfigurasi Firebase sudah benar. Cek Console (F12) untuk detail.");
+  }
+};
+
+window.handleLogout = function() {
   if (!confirm('Yakin ingin logout?')) return;
   currentUser = null;
   localStorage.removeItem(AUTH_KEY);
@@ -840,9 +852,9 @@ function handleLogout() {
   document.getElementById('loginPage').style.display = 'flex';
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
-}
+};
 
-function showApp() {
+window.showApp = async function() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('mainApp').classList.add('active');
   
@@ -858,15 +870,15 @@ function showApp() {
     document.getElementById('sekolahMediaSection').style.display = 'block';
   }
   
-  renderDashboard();
-  if (currentUser.type === 'admin') renderSchoolTable();
-  else renderMyMedia();
-}
+  await window.renderDashboard();
+  if (currentUser.type === 'admin') await window.renderSchoolTable();
+  else await window.renderMyMedia();
+};
 
 // ============ DASHBOARD ============
-function renderDashboard() {
+window.renderDashboard = async function() {
   const grid = document.getElementById('dashboardGrid');
-  const media = getMedia();
+  const media = await window.getMedia();
   
   if (currentUser.type === 'admin') {
     const totalSchools = schools.length;
@@ -879,57 +891,29 @@ function renderDashboard() {
     const totalFoto = Object.values(media).reduce((sum, m) => sum + (m.foto?.length || 0), 0);
     
     grid.innerHTML = `
-      <div class="dash-card">
-        <div class="dash-label">🏫 Total Sekolah</div>
-        <div class="dash-value">${totalSchools}</div>
-        <div class="dash-sub">Seluruh satuan pendidikan</div>
-      </div>
-      <div class="dash-card accent">
-        <div class="dash-label">📁 Sekolah dengan Media</div>
-        <div class="dash-value">${schoolsWithMedia}</div>
-        <div class="dash-sub">${((schoolsWithMedia/totalSchools)*100).toFixed(1)}% dari total</div>
-      </div>
-      <div class="dash-card success">
-        <div class="dash-label">📊 Total Media</div>
-        <div class="dash-value">${totalMedia}</div>
-        <div class="dash-sub">Foto, video, dan dokumen</div>
-      </div>
-      <div class="dash-card warning">
-        <div class="dash-label">📸 Total Foto</div>
-        <div class="dash-value">${totalFoto}</div>
-        <div class="dash-sub">Dari seluruh sekolah</div>
-      </div>
+      <div class="dash-card"><div class="dash-label">🏫 Total Sekolah</div><div class="dash-value">${totalSchools}</div><div class="dash-sub">Seluruh satuan pendidikan</div></div>
+      <div class="dash-card accent"><div class="dash-label">📁 Sekolah dengan Media</div><div class="dash-value">${schoolsWithMedia}</div><div class="dash-sub">${((schoolsWithMedia/totalSchools)*100).toFixed(1)}% dari total</div></div>
+      <div class="dash-card success"><div class="dash-label">📊 Total Media</div><div class="dash-value">${totalMedia}</div><div class="dash-sub">Foto, video, dan dokumen</div></div>
+      <div class="dash-card warning"><div class="dash-label">📸 Total Foto</div><div class="dash-value">${totalFoto}</div><div class="dash-sub">Dari seluruh sekolah</div></div>
     `;
   } else {
     const m = media[currentUser.schoolId] || { foto: [], video: [], dokumen: [] };
     const total = (m.foto?.length || 0) + (m.video?.length || 0) + (m.dokumen?.length || 0);
     grid.innerHTML = `
-      <div class="dash-card">
-        <div class="dash-label">📸 Foto</div>
-        <div class="dash-value">${m.foto?.length || 0}</div>
-      </div>
-      <div class="dash-card accent">
-        <div class="dash-label"> Video</div>
-        <div class="dash-value">${m.video?.length || 0}</div>
-      </div>
-      <div class="dash-card success">
-        <div class="dash-label">📄 Dokumen</div>
-        <div class="dash-value">${m.dokumen?.length || 0}</div>
-      </div>
-      <div class="dash-card warning">
-        <div class="dash-label">📊 Total Media</div>
-        <div class="dash-value">${total}</div>
-      </div>
+      <div class="dash-card"><div class="dash-label">📸 Foto</div><div class="dash-value">${m.foto?.length || 0}</div></div>
+      <div class="dash-card accent"><div class="dash-label">🎬 Video</div><div class="dash-value">${m.video?.length || 0}</div></div>
+      <div class="dash-card success"><div class="dash-label">📄 Dokumen</div><div class="dash-value">${m.dokumen?.length || 0}</div></div>
+      <div class="dash-card warning"><div class="dash-label">📊 Total Media</div><div class="dash-value">${total}</div></div>
     `;
   }
-}
+};
 
 // ============ ADMIN: SCHOOL TABLE ============
 let filteredSchools = [...schools];
 let currentPage = 1;
 const perPage = 25;
 
-function renderSchoolTable() {
+window.renderSchoolTable = async function() {
   const q = document.getElementById('searchSchool').value.toLowerCase();
   const bentuk = document.getElementById('filterBentuk').value;
   const kec = document.getElementById('filterKec').value;
@@ -946,7 +930,7 @@ function renderSchoolTable() {
   if (currentPage > totalPages) currentPage = totalPages;
   const start = (currentPage - 1) * perPage;
   const pageData = filteredSchools.slice(start, start + perPage);
-  const media = getMedia();
+  const media = await window.getMedia();
   
   if (!pageData.length) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty">Tidak ada data</td></tr>';
@@ -955,7 +939,7 @@ function renderSchoolTable() {
       const m = media[s.id] || { foto: [], video: [], dokumen: [] };
       const count = (m.foto?.length || 0) + (m.video?.length || 0) + (m.dokumen?.length || 0);
       return `
-        <tr onclick="viewSchoolMedia(${s.id})">
+        <tr onclick="window.viewSchoolMedia(${s.id})">
           <td><strong>${escapeHtml(s.nama)}</strong></td>
           <td><code>${s.npsn}</code></td>
           <td><span class="badge badge-${s.bentuk}">${s.bentuk}</span></td>
@@ -969,39 +953,35 @@ function renderSchoolTable() {
   const pag = document.getElementById('pagination');
   if (totalPages <= 1) { pag.innerHTML = ''; }
   else {
-    let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+    let html = `<button class="page-btn" onclick="window.goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
     for (let i = Math.max(1, currentPage-2); i <= Math.min(totalPages, currentPage+2); i++) {
-      html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+      html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="window.goPage(${i})">${i}</button>`;
     }
-    html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+    html += `<button class="page-btn" onclick="window.goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
     pag.innerHTML = html;
   }
-}
+};
 
-function goPage(p) {
+window.goPage = function(p) {
   const totalPages = Math.ceil(filteredSchools.length / perPage);
   if (p < 1 || p > totalPages) return;
   currentPage = p;
-  renderSchoolTable();
-}
+  window.renderSchoolTable();
+};
 
-function viewSchoolMedia(schoolId) {
+window.viewSchoolMedia = async function(schoolId) {
   const school = schools.find(s => s.id === schoolId);
   if (!school) return;
 
-  // ✅ PERBAIKAN: Sembunyikan daftar sekolah, tampilkan section media
   document.getElementById('adminSchoolList').style.display = 'none';
   document.getElementById('sekolahMediaSection').style.display = 'block';
 
-  // Simpan user admin asli, lalu ubah sementara menjadi konteks sekolah yang diklik
   const origUser = currentUser;
   currentUser = { type: 'sekolah', schoolId, school };
   
-  // Render media sekolah tersebut
-  renderMyMedia();
-  showSection('dashboard');
+  await window.renderMyMedia();
+  window.showSection('dashboard');
 
-  // Tambahkan tombol kembali jika belum ada
   const section = document.getElementById('sekolahMediaSection');
   if (!document.getElementById('backBtn')) {
     const btn = document.createElement('button');
@@ -1009,45 +989,45 @@ function viewSchoolMedia(schoolId) {
     btn.className = 'btn btn-outline btn-sm';
     btn.style.marginBottom = '1rem';
     btn.textContent = '← Kembali ke Daftar Sekolah';
-    btn.onclick = () => {
-      // Kembalikan ke konteks Admin
+    btn.onclick = async () => {
       currentUser = origUser;
       document.getElementById('adminSchoolList').style.display = 'block';
       document.getElementById('sekolahMediaSection').style.display = 'none';
       btn.remove();
-      renderDashboard();
-      renderSchoolTable(); 
+      await window.renderDashboard();
+      await window.renderSchoolTable(); 
     };
     section.insertBefore(btn, section.firstChild);
   }
-}
+};
 
 // ============ SEKOLAH: MY MEDIA ============
 let currentMediaTab = 'foto';
 let currentFormType = null;
 
-function renderMyMedia() {
+window.renderMyMedia = async function() {
   if (!currentUser || currentUser.type !== 'sekolah') return;
-  const m = getMedia()[currentUser.schoolId] || { foto: [], video: [], dokumen: [] };
+  const allMedia = await window.getMedia();
+  const m = allMedia[currentUser.schoolId] || { foto: [], video: [], dokumen: [] };
   
   document.getElementById('countFoto').textContent = m.foto?.length || 0;
   document.getElementById('countVideo').textContent = m.video?.length || 0;
   document.getElementById('countDokumen').textContent = m.dokumen?.length || 0;
   
-  renderFoto(m.foto || []);
-  renderVideo(m.video || []);
-  renderDokumen(m.dokumen || []);
-}
+  window.renderFoto(m.foto || []);
+  window.renderVideo(m.video || []);
+  window.renderDokumen(m.dokumen || []);
+};
 
-function switchMediaTab(tab, btn) {
+window.switchMediaTab = function(tab, btn) {
   currentMediaTab = tab;
   document.querySelectorAll('#sekolahMediaSection .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('#sekolahMediaSection .section').forEach(s => s.classList.remove('active'));
   document.getElementById('media-' + tab).classList.add('active');
-}
+};
 
-function renderFoto(items) {
+window.renderFoto = function(items) {
   const grid = document.getElementById('gridFoto');
   if (!items.length) {
     grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📷</div>Belum ada foto</div>';
@@ -1055,7 +1035,7 @@ function renderFoto(items) {
   }
   grid.innerHTML = items.map(i => `
     <div class="media-card">
-      <div class="media-thumb" onclick="previewMedia('foto',${i.id})">
+      <div class="media-thumb" onclick="window.previewMedia('foto',${i.id})">
         <img src="${i.url}" alt="${escapeHtml(i.title)}" onerror="this.src='https://via.placeholder.com/400x250?text=Foto'">
       </div>
       <div class="media-body">
@@ -1063,14 +1043,14 @@ function renderFoto(items) {
         <div class="media-desc">${escapeHtml(i.desc || '')}</div>
       </div>
       <div class="media-actions">
-        <button class="btn btn-sm btn-outline" onclick="previewMedia('foto',${i.id})">Lihat</button>
-        <button class="btn btn-sm btn-danger" onclick="hapusMedia('foto',${i.id})">Hapus</button>
+        <button class="btn btn-sm btn-outline" onclick="window.previewMedia('foto',${i.id})">Lihat</button>
+        <button class="btn btn-sm btn-danger" onclick="window.hapusMedia('foto',${i.id})">Hapus</button>
       </div>
     </div>
   `).join('');
-}
+};
 
-function renderVideo(items) {
+window.renderVideo = function(items) {
   const grid = document.getElementById('gridVideo');
   if (!items.length) {
     grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">🎬</div>Belum ada video</div>';
@@ -1089,18 +1069,18 @@ function renderVideo(items) {
           <div class="media-desc">${escapeHtml(i.desc || '')}</div>
         </div>
         <div class="media-actions">
-          <button class="btn btn-sm btn-outline" onclick="previewMedia('video',${i.id})">Perbesar</button>
-          <button class="btn btn-sm btn-danger" onclick="hapusMedia('video',${i.id})">Hapus</button>
+          <button class="btn btn-sm btn-outline" onclick="window.previewMedia('video',${i.id})">Perbesar</button>
+          <button class="btn btn-sm btn-danger" onclick="window.hapusMedia('video',${i.id})">Hapus</button>
         </div>
       </div>
     `;
   }).join('');
-}
+};
 
-function renderDokumen(items) {
+window.renderDokumen = function(items) {
   const grid = document.getElementById('gridDokumen');
   if (!items.length) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon"></div>Belum ada dokumen</div>';
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📄</div>Belum ada dokumen</div>';
     return;
   }
   grid.innerHTML = items.map(i => `
@@ -1111,16 +1091,16 @@ function renderDokumen(items) {
         <div class="media-desc">${escapeHtml(i.desc || '')}</div>
       </div>
       <div class="media-actions">
-        <button class="btn btn-sm btn-outline" onclick="previewMedia('dokumen',${i.id})">Buka</button>
+        <button class="btn btn-sm btn-outline" onclick="window.previewMedia('dokumen',${i.id})">Buka</button>
         <a href="${i.url}" target="_blank" class="btn btn-sm" style="text-decoration:none;">↗</a>
-        <button class="btn btn-sm btn-danger" onclick="hapusMedia('dokumen',${i.id})">Hapus</button>
+        <button class="btn btn-sm btn-danger" onclick="window.hapusMedia('dokumen',${i.id})">Hapus</button>
       </div>
     </div>
   `).join('');
-}
+};
 
 // ============ HANDLE TITLE SELECT ============
-function handleTitleSelect() {
+window.handleTitleSelect = function() {
   const select = document.getElementById('fTitleSelect');
   const customGroup = document.getElementById('fTitleCustomGroup');
   const customInput = document.getElementById('fTitleCustom');
@@ -1133,22 +1113,20 @@ function handleTitleSelect() {
     customInput.required = false;
     customInput.value = '';
   }
-}
+};
 
 // ============ MEDIA FORM ============
-function openMediaForm(type) {
+window.openMediaForm = function(type) {
   currentFormType = type;
   const titles = { foto: 'Tambah Foto', video: 'Tambah Video', dokumen: 'Tambah Dokumen' };
   document.getElementById('formTitle').textContent = titles[type];
   
-  // Reset form
   document.getElementById('fDesc').value = '';
   document.getElementById('fUrl').value = '';
   document.getElementById('fFile').value = '';
   document.getElementById('fTitleCustom').value = '';
   document.getElementById('fTitleCustomGroup').style.display = 'none';
   
-  // Populate dropdown judul
   const select = document.getElementById('fTitleSelect');
   select.innerHTML = '<option value="">-- Pilih Judul --</option>';
   PREDEFINED_TITLES[type].forEach(title => {
@@ -1158,27 +1136,25 @@ function openMediaForm(type) {
     select.appendChild(option);
   });
   
-  // Setup file upload dan hint
   document.getElementById('fFileGroup').style.display = type === 'foto' ? 'block' : 'none';
   const hints = {
-    foto: 'URL gambar atau upload file',
+    foto: 'Disarankan gunakan URL gambar (misal dari Google Drive/Imgur) untuk menghemat kuota database.',
     video: 'URL YouTube (contoh: https://www.youtube.com/watch?v=...)',
     dokumen: 'URL embed Google Drive'
   };
   document.getElementById('fUrlHint').textContent = hints[type];
-  document.getElementById('fUrlLabel').textContent = type === 'foto' ? 'URL Gambar' : (type === 'video' ? 'URL YouTube' : 'URL Dokumen');
+  document.getElementById('fUrlLabel').textContent = type === 'foto' ? 'URL Gambar (atau Upload)' : (type === 'video' ? 'URL YouTube' : 'URL Dokumen');
   
   document.getElementById('formModal').classList.add('active');
-}
+};
 
-function closeForm() {
+window.closeForm = function() {
   document.getElementById('formModal').classList.remove('active');
-}
+};
 
-function submitMedia(e) {
+window.submitMedia = async function(e) {
   e.preventDefault();
   
-  // Ambil judul dari select atau custom input
   const titleSelect = document.getElementById('fTitleSelect').value;
   const titleCustom = document.getElementById('fTitleCustom').value;
   const title = titleSelect === 'Lainnya (Ketik Manual)' ? titleCustom : titleSelect;
@@ -1187,46 +1163,54 @@ function submitMedia(e) {
   const fileInput = document.getElementById('fFile');
   let url = document.getElementById('fUrl').value;
   
-  const finish = (finalUrl) => {
-    const media = getMedia();
+  const finish = async (finalUrl) => {
+    const media = await window.getMedia();
     if (!media[currentUser.schoolId]) media[currentUser.schoolId] = { foto: [], video: [], dokumen: [] };
     media[currentUser.schoolId][currentFormType].push({
       id: Date.now(),
       title, desc,
       url: finalUrl
     });
-    saveMedia(media);
-    renderMyMedia();
-    renderDashboard();
-    closeForm();
+    await window.saveMedia(media);
+    await window.renderMyMedia();
+    await window.renderDashboard();
+    window.closeForm();
   };
   
   if (currentFormType === 'foto' && fileInput.files[0] && !url) {
+    const file = fileInput.files[0];
+    if (file.size > 300000) {
+      alert('Ukuran file terlalu besar (Maks 300KB). Silakan kompres foto atau gunakan URL gambar dari internet/Google Drive.');
+      return;
+    }
     const reader = new FileReader();
-    reader.onload = ev => finish(ev.target.result);
-    reader.readAsDataURL(fileInput.files[0]);
+    reader.onload = async (ev) => {
+      await finish(ev.target.result);
+    };
+    reader.readAsDataURL(file);
   } else if (currentFormType === 'video') {
     const ytId = extractYoutubeId(url);
     finish(ytId ? `https://www.youtube.com/embed/${ytId}` : url);
   } else {
     finish(url);
   }
-}
+};
 
-function hapusMedia(type, id) {
+window.hapusMedia = async function(type, id) {
   if (!confirm('Hapus item ini?')) return;
-  const media = getMedia();
+  const media = await window.getMedia();
   if (!media[currentUser.schoolId]) return;
   media[currentUser.schoolId][type] = media[currentUser.schoolId][type].filter(i => i.id !== id);
-  saveMedia(media);
-  renderMyMedia();
-  renderDashboard();
-}
+  await window.saveMedia(media);
+  await window.renderMyMedia();
+  await window.renderDashboard();
+};
 
-function previewMedia(type, id) {
-  const media = getMedia()[currentUser.schoolId];
-  if (!media) return;
-  const item = media[type].find(i => i.id === id);
+window.previewMedia = async function(type, id) {
+  const media = await window.getMedia();
+  const schoolMedia = media[currentUser.schoolId];
+  if (!schoolMedia) return;
+  const item = schoolMedia[type].find(i => i.id === id);
   if (!item) return;
   
   let html = '';
@@ -1241,11 +1225,11 @@ function previewMedia(type, id) {
   }
   document.getElementById('previewContent').innerHTML = html;
   document.getElementById('previewModal').classList.add('active');
-}
+};
 
-function closePreview() {
+window.closePreview = function() {
   document.getElementById('previewModal').classList.remove('active');
-}
+};
 
 function extractYoutubeId(url) {
   const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
@@ -1253,7 +1237,7 @@ function extractYoutubeId(url) {
 }
 
 // ============ PROFILE & PASSWORD ============
-function showSection(name) {
+window.showSection = function(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('section-' + name).classList.add('active');
   
@@ -1270,57 +1254,61 @@ function showSection(name) {
     document.getElementById('profileKec').textContent = 'Kabupaten Ende';
     document.getElementById('profileRole').textContent = 'Admin Dinas';
   }
-}
+};
 
-function changePassword() {
+window.changePassword = async function() {
   const oldPass = document.getElementById('oldPass').value;
   const newPass = document.getElementById('newPass').value;
   const confirmPass = document.getElementById('confirmPass').value;
   const msgEl = document.getElementById('passMsg');
   
-  if (currentUser.type === 'admin') {
-    if (oldPass !== DEFAULT_ADMIN_PASS) {
-      msgEl.innerHTML = '<div class="alert alert-warning">Password lama salah!</div>';
-      return;
+  try {
+    if (currentUser.type === 'admin') {
+      const p = await window.getPasswords();
+      const currentAdminPass = p['_admin'] || 'admin2026';
+      if (oldPass !== currentAdminPass) {
+        msgEl.innerHTML = '<div class="alert alert-warning">Password lama salah!</div>';
+        return;
+      }
+      p['_admin'] = newPass;
+      await window.savePasswords(p);
+      msgEl.innerHTML = '<div class="alert" style="background:#d1fae5; color:#065f46;">✓ Password admin berhasil diubah!</div>';
+    } else {
+      const currentSchoolPass = await window.getSchoolPassword(currentUser.school.npsn);
+      if (oldPass !== currentSchoolPass) {
+        msgEl.innerHTML = '<div class="alert alert-warning">Password lama salah!</div>';
+        return;
+      }
+      if (newPass.length < 6) {
+        msgEl.innerHTML = '<div class="alert alert-warning">Password minimal 6 karakter!</div>';
+        return;
+      }
+      if (newPass !== confirmPass) {
+        msgEl.innerHTML = '<div class="alert alert-warning">Konfirmasi password tidak cocok!</div>';
+        return;
+      }
+      await window.setSchoolPassword(currentUser.school.npsn, newPass);
+      msgEl.innerHTML = '<div class="alert" style="background:#d1fae5; color:#065f46;">✓ Password berhasil diubah!</div>';
     }
-  } else {
-    if (oldPass !== getSchoolPassword(currentUser.school.npsn)) {
-      msgEl.innerHTML = '<div class="alert alert-warning">Password lama salah!</div>';
-      return;
-    }
+    
+    document.getElementById('oldPass').value = '';
+    document.getElementById('newPass').value = '';
+    document.getElementById('confirmPass').value = '';
+  } catch (error) {
+    console.error("Error ganti password:", error);
+    alert("Gagal mengubah password. Cek koneksi Firebase.");
   }
-  
-  if (newPass.length < 6) {
-    msgEl.innerHTML = '<div class="alert alert-warning">Password minimal 6 karakter!</div>';
-    return;
-  }
-  if (newPass !== confirmPass) {
-    msgEl.innerHTML = '<div class="alert alert-warning">Konfirmasi password tidak cocok!</div>';
-    return;
-  }
-  
-  if (currentUser.type === 'admin') {
-    msgEl.innerHTML = '<div class="alert" style="background:#d1fae5; color:#065f46;">✓ Password admin berhasil diubah (simulasi)</div>';
-  } else {
-    setSchoolPassword(currentUser.school.npsn, newPass);
-    msgEl.innerHTML = '<div class="alert" style="background:#d1fae5; color:#065f46;">✓ Password berhasil diubah!</div>';
-  }
-  
-  document.getElementById('oldPass').value = '';
-  document.getElementById('newPass').value = '';
-  document.getElementById('confirmPass').value = '';
-}
+};
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 // ============ FILTER EVENTS ============
-document.getElementById('searchSchool').addEventListener('input', () => { currentPage = 1; renderSchoolTable(); });
-document.getElementById('filterBentuk').addEventListener('change', () => { currentPage = 1; renderSchoolTable(); });
-document.getElementById('filterKec').addEventListener('change', () => { currentPage = 1; renderSchoolTable(); });
+document.getElementById('searchSchool').addEventListener('input', () => { currentPage = 1; window.renderSchoolTable(); });
+document.getElementById('filterBentuk').addEventListener('change', () => { currentPage = 1; window.renderSchoolTable(); });
+document.getElementById('filterKec').addEventListener('change', () => { currentPage = 1; window.renderSchoolTable(); });
 
-// Populate filters
 const bentukSet = new Set(schools.map(s => s.bentuk));
 const kecSet = new Set(schools.map(s => s.kecamatan));
 const bentukSelect = document.getElementById('filterBentuk');
@@ -1336,7 +1324,6 @@ const kecSelect = document.getElementById('filterKec');
   kecSelect.appendChild(opt);
 });
 
-// Close modals on backdrop
 document.querySelectorAll('.modal').forEach(m => {
   m.addEventListener('click', e => {
     if (e.target === m) m.classList.remove('active');
@@ -1352,7 +1339,7 @@ if (savedAuth) {
       currentUser.school = schools.find(s => s.id === currentUser.schoolId);
     }
     if (currentUser && (currentUser.type === 'admin' || currentUser.school)) {
-      showApp();
+      window.showApp();
     }
   } catch(e) {}
 }
