@@ -1589,18 +1589,19 @@ if (savedAuth) {
     }
   } catch(e) {}
 }
-// ============  VISITOR TRACKING SYSTEM ============
+// ============ 📊 VISITOR TRACKING SYSTEM ============
 
 // Inisialisasi session ID untuk unique visitor
 function initVisitorSession() {
   let sessionId = sessionStorage.getItem('visitor_session_id');
   if (!sessionId) {
-    // Buat session ID baru: timestamp + random
     sessionId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     sessionStorage.setItem('visitor_session_id', sessionId);
     sessionStorage.setItem('visitor_is_new', 'true');
+    console.log(' New visitor session created:', sessionId);
   } else {
     sessionStorage.setItem('visitor_is_new', 'false');
+    console.log('🔄 Existing visitor session:', sessionId);
   }
   return sessionId;
 }
@@ -1616,16 +1617,22 @@ function getTodayDate() {
 
 // Track kunjungan ke Firestore
 window.trackVisitor = async function() {
+  console.log('📊 Starting visitor tracking...');
+  
   try {
     const sessionId = initVisitorSession();
     const isNew = sessionStorage.getItem('visitor_is_new') === 'true';
     const today = getTodayDate();
     
+    console.log(' Today:', today);
+    console.log('🆕 Is new visitor:', isNew);
+    
     // Referensi ke dokumen visitor stats
     const statsRef = doc(db, "sisfo_data", "visitor_stats");
     const dailyRef = doc(db, "sisfo_data", `visitors_${today}`);
     
-    // 1. Update total stats (selalu increment)
+    // 1. Update total stats
+    console.log('📝 Updating total stats...');
     const statsSnap = await getDoc(statsRef);
     const statsData = statsSnap.exists() ? statsSnap.data() : {
       total: 0,
@@ -1633,19 +1640,22 @@ window.trackVisitor = async function() {
       lastUpdated: null
     };
     
+    console.log(' Current stats:', statsData);
+    
     const updates = {
       total: (statsData.total || 0) + 1,
       lastUpdated: new Date().toISOString()
     };
     
-    // Increment unique hanya jika session baru
     if (isNew) {
       updates.unique = (statsData.unique || 0) + 1;
     }
     
     await setDoc(statsRef, updates);
+    console.log('✅ Total stats updated:', updates);
     
     // 2. Update daily stats
+    console.log('📝 Updating daily stats...');
     const dailySnap = await getDoc(dailyRef);
     const dailyData = dailySnap.exists() ? dailySnap.data() : {
       date: today,
@@ -1663,67 +1673,70 @@ window.trackVisitor = async function() {
       dailyUpdates.unique = (dailyData.unique || 0) + 1;
     }
     
-    // Simpan session IDs (max 100 terakhir untuk menghindari dokumen terlalu besar)
+    // Simpan session IDs (max 100 terakhir)
     const sessions = dailyData.sessions || [];
     if (isNew && !sessions.includes(sessionId)) {
       sessions.push(sessionId);
-      if (sessions.length > 100) sessions.shift(); // Keep last 100
+      if (sessions.length > 100) sessions.shift();
       dailyUpdates.sessions = sessions;
     }
     
     await setDoc(dailyRef, dailyUpdates);
-    
-    console.log("✅ Visitor tracked:", { total: updates.total, unique: updates.unique, today: dailyUpdates.total });
+    console.log('✅ Daily stats updated:', dailyUpdates);
     
     // 3. Tampilkan di UI
+    console.log('🎨 Updating display...');
     await window.updateVisitorDisplay();
     
   } catch (error) {
-    console.error("❌ Gagal track visitor:", error);
-    // Fallback: tampilkan dari localStorage jika Firebase gagal
-    window.updateVisitorDisplayFallback();
+    console.error('❌ Gagal track visitor:', error);
+    console.error('Error details:', error.message);
+    // Tampilkan error di console untuk debugging
   }
 };
 
 // Update tampilan counter di halaman login
 window.updateVisitorDisplay = async function() {
+  console.log(' Updating visitor display...');
+  
   try {
     const statsRef = doc(db, "sisfo_data", "visitor_stats");
     const statsSnap = await getDoc(statsRef);
     const stats = statsSnap.exists() ? statsSnap.data() : { total: 0, unique: 0 };
+    
+    console.log('📊 Stats from Firestore:', stats);
     
     const today = getTodayDate();
     const dailyRef = doc(db, "sisfo_data", `visitors_${today}`);
     const dailySnap = await getDoc(dailyRef);
     const daily = dailySnap.exists() ? dailySnap.data() : { total: 0 };
     
+    console.log(' Daily stats from Firestore:', daily);
+    
     // Animate numbers
     animateNumber('totalVisitors', stats.total || 0);
     animateNumber('todayVisitors', daily.total || 0);
     animateNumber('uniqueVisitors', stats.unique || 0);
     
-    // Tambahkan live indicator
-    const brandFooter = document.querySelector('.brand-footer');
-    if (brandFooter && !document.getElementById('visitorLive')) {
-      const liveEl = document.createElement('div');
-      liveEl.id = 'visitorLive';
-      liveEl.className = 'visitor-live';
-      liveEl.innerHTML = '<div class="visitor-live-dot"></div><span>Live tracking aktif</span>';
-      brandFooter.parentNode.insertBefore(liveEl, brandFooter);
-    }
+    console.log('✅ Display updated successfully');
     
   } catch (error) {
-    console.error("Gagal update visitor display:", error);
+    console.error('❌ Gagal update visitor display:', error);
   }
 };
 
 // Animasi angka (counting up effect)
 function animateNumber(elementId, target) {
   const el = document.getElementById(elementId);
-  if (!el) return;
+  if (!el) {
+    console.warn('⚠️ Element not found:', elementId);
+    return;
+  }
+  
+  console.log(`🔢 Animating ${elementId} from ${el.textContent} to ${target}`);
   
   const duration = 1500; // ms
-  const start = parseInt(el.textContent) || 0;
+  const start = parseInt(el.textContent.replace(/[^0-9]/g, '')) || 0;
   const startTime = performance.now();
   
   function update(currentTime) {
@@ -1746,34 +1759,32 @@ function animateNumber(elementId, target) {
   requestAnimationFrame(update);
 }
 
-// Fallback jika Firebase error
-window.updateVisitorDisplayFallback = function() {
-  const statsRef = doc(db, "sisfo_data", "visitor_stats");
-  getDoc(statsRef).then(snap => {
-    if (snap.exists()) {
-      const stats = snap.data();
-      const today = getTodayDate();
-      return getDoc(doc(db, "sisfo_data", `visitors_${today}`)).then(dailySnap => {
-        const daily = dailySnap.exists() ? dailySnap.data() : { total: 0 };
-        animateNumber('totalVisitors', stats.total || 0);
-        animateNumber('todayVisitors', daily.total || 0);
-        animateNumber('uniqueVisitors', stats.unique || 0);
-      });
-    }
-  }).catch(e => console.log("Fallback juga gagal:", e));
-};
-
-// Panggil tracking saat halaman login dimuat
-// Cek apakah kita masih di halaman login
+// Panggil tracking saat halaman dimuat
 function startVisitorTracking() {
+  console.log(' Starting visitor tracking system...');
+  
   const loginPage = document.getElementById('loginPage');
-  if (loginPage && loginPage.style.display !== 'none') {
+  if (loginPage) {
+    console.log('✅ Login page found, starting tracking...');
     window.trackVisitor();
+  } else {
+    console.warn('⚠️ Login page not found');
   }
 }
 
-// Jalankan tracking setelah Firebase siap
-if (db) {
-  // Delay sedikit agar DOM siap
-  setTimeout(startVisitorTracking, 500);
+// Jalankan tracking setelah Firebase siap dan DOM loaded
+if (typeof db !== 'undefined' && db) {
+  console.log('✅ Firebase DB ready, setting up tracking...');
+  
+  // Tunggu DOM fully loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(startVisitorTracking, 800);
+    });
+  } else {
+    // DOM sudah ready
+    setTimeout(startVisitorTracking, 800);
+  }
+} else {
+  console.error(' Firebase DB not initialized');
 }
