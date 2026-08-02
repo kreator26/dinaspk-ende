@@ -22,90 +22,900 @@
   ============================================================
 -->
 
-<!-- ============ LOGIN PAGE ============ -->
-<!-- ============ LOGIN PAGE ============ -->
-<div class="login-page" id="loginPage">
-  <!-- Animated Background -->
-  <div class="login-bg">
-    <div class="bg-circle bg-circle-1"></div>
-    <div class="bg-circle bg-circle-2"></div>
-    <div class="bg-circle bg-circle-3"></div>
-    <div class="bg-pattern"></div>
-  </div>
+/* =========================================
+   1. RESET & VARIABLES
+   ========================================= */
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+}
 
-  <!-- Login Container -->
-  <div class="login-container">
-    <!-- Left: Branding -->
-    <div class="login-brand">
-      <div class="brand-content">
-        <div class="brand-icon">🏛️</div>
-        <h1>Sistem Informasi<br>Sekolah</h1>
-        <p class="brand-sub">Dinas Pendidikan Kabupaten Ende</p>
-        <p class="brand-sub2">Provinsi Nusa Tenggara Timur</p>
-        <div class="brand-features">
-          <div class="feature-item">
-            <span class="feature-icon">📊</span>
-            <span>Monitoring Media Sekolah</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">📸</span>
-            <span>Dokumentasi Digital Terpadu</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">🔒</span>
-            <span>Akses Aman & Terpercaya</span>
-          </div>
-        </div>
-      </div>
-      <div class="brand-footer">
-        © 2026 Dinas Pendidikan Kab. Ende
-      </div>
-    </div>
+:root {
+  --primary: #1e40af;
+  --primary-dark: #1e3a8a;
+  --accent: #fbbf24;
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --success: #10b981;
+  --danger: #dc2626;
+  --warning: #f59e0b;
+}
 
-    <!-- Right: Form -->
-    <div class="login-form-wrap">
-      <div class="login-box">
-        <div class="login-header">
-          <img src="logo.png" alt="Logo" class="login-logo-img" onerror="this.style.display='none'">
-          <h2>Selamat Datang</h2>
-          <p>Masuk ke akun Anda untuk melanjutkan</p>
-        </div>
-        
-        <div class="login-error" id="loginError">
-          <span class="error-icon">⚠️</span>
-          Username atau password salah!
-        </div>
-        
-        <form onsubmit="window.handleLogin(event)">
-          <div class="form-group-modern">
-            <label for="loginUser">Username</label>
-            <div class="input-wrap">
-              <span class="input-icon">👤</span>
-              <input type="text" id="loginUser" placeholder="NPSN Sekolah atau 'admin'" required autocomplete="username">
-            </div>
-          </div>
-          
-          <div class="form-group-modern">
-            <label for="loginPass">Password</label>
-            <div class="input-wrap">
-              <span class="input-icon">🔑</span>
-              <input type="password" id="loginPass" placeholder="Masukkan password" required autocomplete="current-password">
-            </div>
-          </div>
-          
-          <button type="submit" class="btn-login">
-            <span>Masuk</span>
-            <span class="btn-arrow">→</span>
-          </button>
-        </form>
-        
-        <div class="login-footer">
-          <p>Butuh bantuan? Hubungi admin Dinas Pendidikan</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* =========================================
+   2. LOGIN PAGE - PROFESSIONAL DESIGN
+   ========================================= */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  padding: 1rem;
+}
+
+/* Animated Background */
+.login-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+}
+
+.bg-circle-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, #3b82f6, transparent);
+  top: -200px;
+  left: -100px;
+  animation: floatCircle 20s ease-in-out infinite;
+}
+
+.bg-circle-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #8b5cf6, transparent);
+  bottom: -150px;
+  right: -100px;
+  animation: floatCircle 20s ease-in-out infinite;
+  animation-delay: -7s;
+}
+
+.bg-circle-3 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #06b6d4, transparent);
+  top: 50%;
+  left: 50%;
+  margin-top: -200px;
+  margin-left: -200px;
+  animation: floatCircleCenter 20s ease-in-out infinite;
+  animation-delay: -14s;
+}
+
+@keyframes floatCircle {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -30px) scale(1.05); }
+  50% { transform: translate(-20px, 20px) scale(0.95); }
+  75% { transform: translate(20px, 10px) scale(1.02); }
+}
+
+@keyframes floatCircleCenter {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.05) translate(10px, -10px); }
+  50% { transform: scale(0.95) translate(-10px, 10px); }
+  75% { transform: scale(1.02) translate(5px, 5px); }
+}
+
+.bg-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+/* Login Container (Split Layout) */
+.login-container {
+  display: flex;
+  width: 100%;
+  max-width: 1000px;
+  min-height: 580px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Left Branding Panel */
+.login-brand {
+  flex: 1;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #2563eb 100%);
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-brand::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+  border-radius: 50%;
+}
+
+.login-brand::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -30%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+  border-radius: 50%;
+}
+
+.brand-content {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-icon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.login-brand h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.5px;
+}
+
+.brand-sub {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.brand-sub2 {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 2rem;
+}
+
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateX(4px);
+}
+
+.feature-icon {
+  font-size: 1.2rem;
+}
+
+.brand-footer {
+  position: relative;
+  z-index: 1;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Right Form Panel */
+.login-form-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.login-box {
+  width: 100%;
+  max-width: 360px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-logo-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+}
+
+.login-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.4rem;
+}
+
+.login-header p {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Error Message */
+.login-error {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+}
+
+.login-error.show {
+  display: flex;
+  animation: shake 0.4s ease-in-out;
+}
+
+.error-icon {
+  font-size: 1.1rem;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Modern Form Groups */
+.form-group-modern {
+  margin-bottom: 1.25rem;
+}
+
+.form-group-modern label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-wrap:focus-within {
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.input-icon {
+  font-size: 1.1rem;
+  margin-right: 0.75rem;
+  opacity: 0.6;
+}
+
+.input-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0.9rem 0;
+  font-size: 0.95rem;
+  color: #1e293b;
+  font-family: inherit;
+}
+
+.input-wrap input::placeholder {
+  color: #94a3b8;
+}
+
+/* Login Button */
+.btn-login {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  font-family: inherit;
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+}
+
+.btn-arrow {
+  transition: transform 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.btn-login:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+/* Login Footer */
+.login-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.login-footer p {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* Login Responsive */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+    min-height: auto;
+    max-width: 420px;
+  }
+  
+  .login-brand {
+    padding: 2rem 1.5rem;
+  }
+  
+  .login-brand h1 {
+    font-size: 1.5rem;
+  }
+  
+  .brand-features {
+    display: none;
+  }
+  
+  .brand-sub2 {
+    margin-bottom: 0;
+  }
+  
+  .login-form-wrap {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 0.5rem;
+  }
+  
+  .login-container {
+    border-radius: 16px;
+  }
+  
+  .login-brand {
+    padding: 1.5rem 1.25rem;
+  }
+  
+  .login-brand h1 {
+    font-size: 1.3rem;
+  }
+  
+  .login-form-wrap {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+/* =========================================
+   3. APP (Setelah Login)
+   ========================================= */
+.app { display: none; }
+.app.active { display: block; }
+
+header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.header-logo-img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: white;
+  padding: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.user-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.role-badge {
+  background: var(--accent);
+  color: #1e293b;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.container { 
+  max-width: 1400px; 
+  margin: 1.5rem auto; 
+  padding: 0 1.5rem; 
+}
+
+/* =========================================
+   4. FORMS & BUTTONS
+   ========================================= */
+.form-group { margin-bottom: 1.25rem; }
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: border 0.2s;
+  font-family: inherit;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--primary);
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+.btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+.btn-full { width: 100%; padding: 0.9rem; font-size: 1.05rem; }
+.btn-accent { background: var(--accent); color: #1e293b; }
+.btn-accent:hover { background: #f59e0b; }
+
+.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 8px; }
+
+.btn-danger { background: var(--danger); }
+.btn-danger:hover { background: #b91c1c; }
+
+.btn-outline {
+  background: white;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+.btn-outline:hover { background: var(--primary); color: white; }
+
+.btn-white {
+  color: white;
+  border-color: white;
+  background: transparent;
+}
+.btn-white:hover {
+  background: white;
+  color: var(--primary);
+}
+
+.btn-success { background: var(--success); }
+.btn-success:hover { background: #059669; }
+
+/* =========================================
+   5. DASHBOARD & CARDS
+   ========================================= */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.dash-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border-left: 4px solid var(--primary);
+}
+.dash-card.accent { border-left-color: var(--accent); }
+.dash-card.success { border-left-color: var(--success); }
+.dash-card.warning { border-left-color: var(--warning); }
+
+.dash-label { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
+.dash-value { font-size: 2rem; font-weight: 700; color: var(--text); }
+.dash-sub { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+.school-info-card {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+.school-info-card h2 { font-size: 1.5rem; margin-bottom: 1rem; }
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.info-item {
+  background: rgba(255,255,255,0.15);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+.info-label { font-size: 0.8rem; opacity: 0.9; }
+.info-value { font-weight: 600; font-size: 1.05rem; }
+
+/* =========================================
+   6. TABS & SEARCH
+   ========================================= */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+.tab-btn:hover { color: var(--primary); }
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.search-panel {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  margin-bottom: 1.5rem;
+}
+.search-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.search-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+}
+.search-input:focus { border-color: var(--primary); }
+
+.filter-select {
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  background: white;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+/* =========================================
+   7. TABLES & BADGES
+   ========================================= */
+.table-wrap {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--primary); color: white; }
+th {
+  padding: 0.9rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+tbody tr { cursor: pointer; transition: background 0.15s; }
+tbody tr:hover { background: #eff6ff; }
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge-KB { background: #dbeafe; color: #1e40af; }
+.badge-TK { background: #fef3c7; color: #92400e; }
+.badge-SD { background: #d1fae5; color: #065f46; }
+.badge-SMP { background: #fce7f3; color: #9d174d; }
+.badge-PKBM { background: #e0e7ff; color: #3730a3; }
+.badge-SPS { background: #fde68a; color: #92400e; }
+.badge-SKB { background: #c7d2fe; color: #3730a3; }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+}
+.page-btn {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.page-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* =========================================
+   8. MEDIA GRID
+   ========================================= */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.media-card {
+  background: var(--bg);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.media-thumb {
+  aspect-ratio: 16/10;
+  background: #e2e8f0;
+  overflow: hidden;
+  position: relative;
+}
+.media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.media-thumb .video-wrap { position: absolute; inset: 0; }
+.media-thumb .video-wrap iframe { width: 100%; height: 100%; border: 0; }
+.media-thumb .doc-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 3rem;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+}
+.media-body { padding: 0.75rem; }
+.media-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+.media-desc { font-size: 0.8rem; color: var(--muted); }
+.media-actions {
+  padding: 0.5rem 0.75rem 0.75rem;
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* Sections & Empty States */
+.section { display: none; }
+.section.active { display: block; }
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--muted);
+}
+.empty-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+
+/* =========================================
+   9. MODALS & ALERTS
+   ========================================= */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  padding: 1rem;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+}
+.modal.active { display: flex; }
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 1000px;
+  width: 100%;
+  margin: 2rem auto;
+  position: relative;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+.modal-close {
+  position: sticky;
+  top: 1rem;
+  float: right;
+  margin-right: 1rem;
+  background: white;
+  border: none;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+
+.form-hint { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
+.alert-warning { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+
+/* =========================================
+   10. APP RESPONSIVE
+   ========================================= */
+@media (max-width: 700px) {
+  th, td { padding: 0.6rem 0.5rem; font-size: 0.8rem; }
+  .school-info-card { padding: 1.25rem; }
+  .user-info { width: 100%; justify-content: flex-end; }
+}
 
 <!-- ============ MAIN APP ============ -->
 <div class="app" id="mainApp">
