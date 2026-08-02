@@ -10,7 +10,7 @@
 
 <!-- 
   ============================================================
-  📋 INFORMASI LOGIN (Hanya untuk Developer / Administrator)
+  📋 INFORMASI LOGIN
   ============================================================
   Sekolah: 
     - Username = NPSN Sekolah (contoh: 70027792)
@@ -22,7 +22,6 @@
   ============================================================
 -->
 
-<!-- ============ LOGIN PAGE ============ -->
 <!-- ============ LOGIN PAGE ============ -->
 <div class="login-page" id="loginPage">
   <!-- Animated Background -->
@@ -57,6 +56,32 @@
           </div>
         </div>
       </div>
+      
+      <!-- 🆕 Visitor Counter -->
+      <div class="visitor-stats">
+        <div class="visitor-stat">
+          <div class="visitor-stat-icon">👥</div>
+          <div class="visitor-stat-info">
+            <div class="visitor-stat-value" id="totalVisitors">0</div>
+            <div class="visitor-stat-label">Total Kunjungan</div>
+          </div>
+        </div>
+        <div class="visitor-stat">
+          <div class="visitor-stat-icon">📅</div>
+          <div class="visitor-stat-info">
+            <div class="visitor-stat-value" id="todayVisitors">0</div>
+            <div class="visitor-stat-label">Hari Ini</div>
+          </div>
+        </div>
+        <div class="visitor-stat">
+          <div class="visitor-stat-icon">🆕</div>
+          <div class="visitor-stat-info">
+            <div class="visitor-stat-value" id="uniqueVisitors">0</div>
+            <div class="visitor-stat-label">Pengunjung Unik</div>
+          </div>
+        </div>
+      </div>
+      
       <div class="brand-footer">
         © 2026 Dinas Pendidikan Kab. Ende
       </div>
@@ -88,7 +113,7 @@
           <div class="form-group-modern">
             <label for="loginPass">Password</label>
             <div class="input-wrap">
-              <span class="input-icon">🔑</span>
+              <span class="input-icon"></span>
               <input type="password" id="loginPass" placeholder="Masukkan password" required autocomplete="current-password">
             </div>
           </div>
@@ -124,14 +149,16 @@
           <span id="userName">-</span>
         </div>
         <button class="btn btn-sm btn-outline btn-white" onclick="window.showSection('profile')">⚙️ Profil</button>
-        <button class="btn btn-sm btn-danger" onclick="window.handleLogout()">🚪 Logout</button>
+        <button class="btn btn-sm btn-danger" onclick="window.handleLogout()"> Logout</button>
       </div>
     </div>
   </header>
 
   <div class="container">
     
-    <!-- ✅ 1. DASHBOARD SECTION (Hanya 1, tanpa duplikat) -->
+    <!-- ============================================
+         1. DASHBOARD SECTION (Default Admin)
+         ============================================ -->
     <div class="section active" id="section-dashboard">
       <div class="dashboard-grid" id="dashboardGrid"></div>
       
@@ -167,7 +194,7 @@
         </div>
         
         <div class="tabs">
-          <button class="tab-btn active" onclick="window.switchStatusTab('belum', this)">⏳ Belum Kirim (<span id="tabBelum">0</span>)</button>
+          <button class="tab-btn active" onclick="window.switchStatusTab('belum', this)"> Belum Kirim (<span id="tabBelum">0</span>)</button>
           <button class="tab-btn" onclick="window.switchStatusTab('sudah', this)">✅ Sudah Kirim (<span id="tabSudah">0</span>)</button>
         </div>
         
@@ -229,14 +256,16 @@
           <div class="pagination" id="pagination"></div>
         </div>
       </div>
-    </div> <!-- ✅ Penutup section-dashboard yang benar -->
+    </div>
     
-    <!-- ✅ 2. SEKOLAH MEDIA SECTION -->
+    <!-- ============================================
+         2. SEKOLAH MEDIA SECTION
+         ============================================ -->
     <div class="section" id="section-sekolahMedia">
       <h2 style="margin-bottom:1rem;">📁 Media Sekolah</h2>
       
       <div class="tabs">
-        <button class="tab-btn active" onclick="window.switchMediaTab('foto', this)">📸 Foto (<span id="countFoto">0</span>)</button>
+        <button class="tab-btn active" onclick="window.switchMediaTab('foto', this)"> Foto (<span id="countFoto">0</span>)</button>
         <button class="tab-btn" onclick="window.switchMediaTab('video', this)">🎬 Video (<span id="countVideo">0</span>)</button>
         <button class="tab-btn" onclick="window.switchMediaTab('dokumen', this)">📄 Dokumen (<span id="countDokumen">0</span>)</button>
       </div>
@@ -266,7 +295,9 @@
       </div>
     </div>
     
-    <!-- ✅ 3. PROFILE SECTION -->
+    <!-- ============================================
+         3. PROFILE SECTION
+         ============================================ -->
     <div class="section" id="section-profile">
       <h2 style="margin-bottom:1rem;">⚙️ Pengaturan Akun</h2>
       <div class="school-info-card">
@@ -294,13 +325,15 @@
           <input type="password" id="confirmPass">
         </div>
         <button class="btn" onclick="window.changePassword()">💾 Simpan Password</button>
-        <div id="passMsg" style="margin-top:1rem;"></div> <!-- ✅ PERBAIKAN: Ditambahkan tanda > -->
+        <div id="passMsg" style="margin-top:1rem;"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal Form Media -->
+<!-- ============================================
+     MODAL: FORM MEDIA
+     ============================================ -->
 <div class="modal" id="formModal">
   <div class="modal-content" style="max-width:500px;">
     <button class="modal-close" onclick="window.closeForm()">✕</button>
@@ -340,7 +373,9 @@
   </div>
 </div>
 
-<!-- Modal Preview -->
+<!-- ============================================
+     MODAL: PREVIEW MEDIA
+     ============================================ -->
 <div class="modal" id="previewModal">
   <div class="modal-content">
     <button class="modal-close" onclick="window.closePreview()">✕</button>
@@ -348,6 +383,9 @@
   </div>
 </div>
 
+<!-- ============================================
+     SCRIPT UTAMA
+     ============================================ -->
 <script type="module" src="script.js"></script>
 </body>
 </html>
