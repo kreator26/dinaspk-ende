@@ -818,7 +818,6 @@ window.switchStatusTab = function(tab, btn) {
   window.renderStatusTable();
 };
 
-// ✅ INI YANG DIPINDAHKAN KE ATAS showApp
 window.renderStatusSection = async function() {
   const media = await window.getMedia();
   
@@ -882,7 +881,7 @@ window.renderStatusTable = async function() {
       if (statusTab === 'sudah') {
         statusBadge = `<span class="badge badge-SD" style="background:#d1fae5; color:#065f46;">✅ Aktif</span>
           <div style="font-size:0.75rem; color:var(--muted); margin-top:0.25rem;">
-             ${fotoCount} | 🎬 ${videoCount} | 📄 ${dokumenCount}
+             📸 ${fotoCount} | 🎬 ${videoCount} | 📄 ${dokumenCount}
           </div>`;
       } else {
         statusBadge = `<span class="badge" style="background:#fef3c7; color:#92400e;">⏳ Belum</span>`;
@@ -972,7 +971,8 @@ window.renderTopSchools = async function() {
   
   section.style.display = 'block';
   
-  const medals = ['🥇', '', '🥉', '4️', '5️⃣'];
+  // ✅ PERBAIKAN: Emoji medali lengkap
+  const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
   const rankColors = [
     'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
     'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
@@ -1008,7 +1008,8 @@ window.renderTopSchools = async function() {
           <div style="font-size:0.65rem; color:#64748b;">Foto</div>
         </div>
         <div style="text-align:center; padding:0.4rem; background:rgba(255,255,255,0.6); border-radius:8px;">
-          <div style="font-size:1.1rem;"></div>
+          <!-- ✅ PERBAIKAN: Menambahkan emoji video yang hilang -->
+          <div style="font-size:1.1rem;">🎬</div>
           <div style="font-weight:700; font-size:1rem;">${s.videoCount}</div>
           <div style="font-size:0.65rem; color:#64748b;">Video</div>
         </div>
@@ -1018,7 +1019,7 @@ window.renderTopSchools = async function() {
           <div style="font-size:0.65rem; color:#64748b;">Dokumen</div>
         </div>
       </div>
-      <div style="text-align:center; padding:0.5rem; background:rgba(0,0,0,0.05); border-radius:8px; font-weight:700; font-size:1.1rem;"> Total: ${s.total} media</div>
+      <div style="text-align:center; padding:0.5rem; background:rgba(0,0,0,0.05); border-radius:8px; font-weight:700; font-size:1.1rem;">📊 Total: ${s.total} media</div>
     </div>
   `).join('');
 };
@@ -1039,7 +1040,8 @@ window.renderDashboard = async function() {
     const totalFoto = Object.values(media).reduce((sum, m) => sum + (m.foto?.length || 0), 0);
     
     grid.innerHTML = `
-      <div class="dash-card"><div class="dash-label"> Total Sekolah</div><div class="dash-value">${totalSchools}</div><div class="dash-sub">Seluruh satuan pendidikan</div></div>
+      <!-- ✅ PERBAIKAN: Menambahkan emoji yang hilang -->
+      <div class="dash-card"><div class="dash-label">🏫 Total Sekolah</div><div class="dash-value">${totalSchools}</div><div class="dash-sub">Seluruh satuan pendidikan</div></div>
       <div class="dash-card accent"><div class="dash-label">📁 Sekolah dengan Media</div><div class="dash-value">${schoolsWithMedia}</div><div class="dash-sub">${((schoolsWithMedia/totalSchools)*100).toFixed(1)}% dari total</div></div>
       <div class="dash-card success"><div class="dash-label">📊 Total Media</div><div class="dash-value">${totalMedia}</div><div class="dash-sub">Foto, video, dan dokumen</div></div>
       <div class="dash-card warning"><div class="dash-label">📸 Total Foto</div><div class="dash-value">${totalFoto}</div><div class="dash-sub">Dari seluruh sekolah</div></div>
@@ -1071,6 +1073,13 @@ window.showApp = async function() {
     window.populateStatusFilters();
     await window.renderTopSchools();
   } else {
+    // 🛡️ SAFEGUARD: Cek apakah data sekolah benar-benar ada
+    if (!currentUser.school) {
+      console.warn("⚠️ Data sekolah tidak ditemukan. Melakukan reset login.");
+      window.handleLogout();
+      return;
+    }
+    
     document.getElementById('userRole').textContent = 'SEKOLAH';
     document.getElementById('userName').textContent = currentUser.school.nama;
     window.showSection('sekolahMedia');
@@ -1589,24 +1598,20 @@ if (savedAuth) {
     }
   } catch(e) {}
 }
-// ============ 📊 VISITOR TRACKING SYSTEM ============
 
-// Inisialisasi session ID untuk unique visitor
+// ============ 📊 VISITOR TRACKING SYSTEM ============
 function initVisitorSession() {
   let sessionId = sessionStorage.getItem('visitor_session_id');
   if (!sessionId) {
     sessionId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     sessionStorage.setItem('visitor_session_id', sessionId);
     sessionStorage.setItem('visitor_is_new', 'true');
-    console.log(' New visitor session created:', sessionId);
   } else {
     sessionStorage.setItem('visitor_is_new', 'false');
-    console.log('🔄 Existing visitor session:', sessionId);
   }
   return sessionId;
 }
 
-// Dapatkan tanggal hari ini dalam format YYYY-MM-DD
 function getTodayDate() {
   const now = new Date();
   const year = now.getFullYear();
@@ -1615,135 +1620,76 @@ function getTodayDate() {
   return `${year}-${month}-${day}`;
 }
 
-// Track kunjungan ke Firestore
 window.trackVisitor = async function() {
-  console.log('📊 Starting visitor tracking...');
-  
   try {
     const sessionId = initVisitorSession();
     const isNew = sessionStorage.getItem('visitor_is_new') === 'true';
     const today = getTodayDate();
     
-    console.log(' Today:', today);
-    console.log('🆕 Is new visitor:', isNew);
-    
-    // Referensi ke dokumen visitor stats
     const statsRef = doc(db, "sisfo_data", "visitor_stats");
     const dailyRef = doc(db, "sisfo_data", `visitors_${today}`);
     
-    // 1. Update total stats
-    console.log('📝 Updating total stats...');
     const statsSnap = await getDoc(statsRef);
-    const statsData = statsSnap.exists() ? statsSnap.data() : {
-      total: 0,
-      unique: 0,
-      lastUpdated: null
-    };
-    
-    console.log(' Current stats:', statsData);
+    const statsData = statsSnap.exists() ? statsSnap.data() : { total: 0, unique: 0, lastUpdated: null };
     
     const updates = {
       total: (statsData.total || 0) + 1,
       lastUpdated: new Date().toISOString()
     };
     
-    if (isNew) {
-      updates.unique = (statsData.unique || 0) + 1;
-    }
-    
+    if (isNew) updates.unique = (statsData.unique || 0) + 1;
     await setDoc(statsRef, updates);
-    console.log('✅ Total stats updated:', updates);
     
-    // 2. Update daily stats
-    console.log('📝 Updating daily stats...');
     const dailySnap = await getDoc(dailyRef);
-    const dailyData = dailySnap.exists() ? dailySnap.data() : {
-      date: today,
-      total: 0,
-      unique: 0,
-      sessions: []
-    };
+    const dailyData = dailySnap.exists() ? dailySnap.data() : { date: today, total: 0, unique: 0, sessions: [] };
     
-    const dailyUpdates = {
-      date: today,
-      total: (dailyData.total || 0) + 1
-    };
+    const dailyUpdates = { date: today, total: (dailyData.total || 0) + 1 };
+    if (isNew) dailyUpdates.unique = (dailyData.unique || 0) + 1;
     
-    if (isNew) {
-      dailyUpdates.unique = (dailyData.unique || 0) + 1;
-    }
-    
-    // Simpan session IDs (max 100 terakhir)
     const sessions = dailyData.sessions || [];
     if (isNew && !sessions.includes(sessionId)) {
       sessions.push(sessionId);
       if (sessions.length > 100) sessions.shift();
       dailyUpdates.sessions = sessions;
     }
-    
     await setDoc(dailyRef, dailyUpdates);
-    console.log('✅ Daily stats updated:', dailyUpdates);
     
-    // 3. Tampilkan di UI
-    console.log('🎨 Updating display...');
     await window.updateVisitorDisplay();
-    
   } catch (error) {
     console.error('❌ Gagal track visitor:', error);
-    console.error('Error details:', error.message);
-    // Tampilkan error di console untuk debugging
   }
 };
 
-// Update tampilan counter di halaman login
 window.updateVisitorDisplay = async function() {
-  console.log(' Updating visitor display...');
-  
   try {
     const statsRef = doc(db, "sisfo_data", "visitor_stats");
     const statsSnap = await getDoc(statsRef);
     const stats = statsSnap.exists() ? statsSnap.data() : { total: 0, unique: 0 };
-    
-    console.log('📊 Stats from Firestore:', stats);
     
     const today = getTodayDate();
     const dailyRef = doc(db, "sisfo_data", `visitors_${today}`);
     const dailySnap = await getDoc(dailyRef);
     const daily = dailySnap.exists() ? dailySnap.data() : { total: 0 };
     
-    console.log(' Daily stats from Firestore:', daily);
-    
-    // Animate numbers
     animateNumber('totalVisitors', stats.total || 0);
     animateNumber('todayVisitors', daily.total || 0);
     animateNumber('uniqueVisitors', stats.unique || 0);
-    
-    console.log('✅ Display updated successfully');
-    
   } catch (error) {
     console.error('❌ Gagal update visitor display:', error);
   }
 };
 
-// Animasi angka (counting up effect)
 function animateNumber(elementId, target) {
   const el = document.getElementById(elementId);
-  if (!el) {
-    console.warn('⚠️ Element not found:', elementId);
-    return;
-  }
+  if (!el) return;
   
-  console.log(`🔢 Animating ${elementId} from ${el.textContent} to ${target}`);
-  
-  const duration = 1500; // ms
+  const duration = 1500;
   const start = parseInt(el.textContent.replace(/[^0-9]/g, '')) || 0;
   const startTime = performance.now();
   
   function update(currentTime) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    
-    // Easing function (ease-out)
     const eased = 1 - Math.pow(1 - progress, 3);
     const current = Math.floor(start + (target - start) * eased);
     
@@ -1755,36 +1701,20 @@ function animateNumber(elementId, target) {
       el.textContent = target.toLocaleString('id-ID');
     }
   }
-  
   requestAnimationFrame(update);
 }
 
-// Panggil tracking saat halaman dimuat
 function startVisitorTracking() {
-  console.log(' Starting visitor tracking system...');
-  
   const loginPage = document.getElementById('loginPage');
   if (loginPage) {
-    console.log('✅ Login page found, starting tracking...');
     window.trackVisitor();
-  } else {
-    console.warn('⚠️ Login page not found');
   }
 }
 
-// Jalankan tracking setelah Firebase siap dan DOM loaded
 if (typeof db !== 'undefined' && db) {
-  console.log('✅ Firebase DB ready, setting up tracking...');
-  
-  // Tunggu DOM fully loaded
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(startVisitorTracking, 800);
-    });
+    document.addEventListener('DOMContentLoaded', () => setTimeout(startVisitorTracking, 800));
   } else {
-    // DOM sudah ready
     setTimeout(startVisitorTracking, 800);
   }
-} else {
-  console.error(' Firebase DB not initialized');
 }
