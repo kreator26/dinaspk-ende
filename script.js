@@ -1589,3 +1589,191 @@ if (savedAuth) {
     }
   } catch(e) {}
 }
+// ============  VISITOR TRACKING SYSTEM ============
+
+// Inisialisasi session ID untuk unique visitor
+function initVisitorSession() {
+  let sessionId = sessionStorage.getItem('visitor_session_id');
+  if (!sessionId) {
+    // Buat session ID baru: timestamp + random
+    sessionId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('visitor_session_id', sessionId);
+    sessionStorage.setItem('visitor_is_new', 'true');
+  } else {
+    sessionStorage.setItem('visitor_is_new', 'false');
+  }
+  return sessionId;
+}
+
+// Dapatkan tanggal hari ini dalam format YYYY-MM-DD
+function getTodayDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Track kunjungan ke Firestore
+window.trackVisitor = async function() {
+  try {
+    const sessionId = initVisitorSession();
+    const isNew = sessionStorage.getItem('visitor_is_new') === 'true';
+    const today = getTodayDate();
+    
+    // Referensi ke dokumen visitor stats
+    const statsRef = doc(db, "sisfo_data", "visitor_stats");
+    const dailyRef = doc(db, "sisfo_data", `visitors_${today}`);
+    
+    // 1. Update total stats (selalu increment)
+    const statsSnap = await getDoc(statsRef);
+    const statsData = statsSnap.exists() ? statsSnap.data() : {
+      total: 0,
+      unique: 0,
+      lastUpdated: null
+    };
+    
+    const updates = {
+      total: (statsData.total || 0) + 1,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Increment unique hanya jika session baru
+    if (isNew) {
+      updates.unique = (statsData.unique || 0) + 1;
+    }
+    
+    await setDoc(statsRef, updates);
+    
+    // 2. Update daily stats
+    const dailySnap = await getDoc(dailyRef);
+    const dailyData = dailySnap.exists() ? dailySnap.data() : {
+      date: today,
+      total: 0,
+      unique: 0,
+      sessions: []
+    };
+    
+    const dailyUpdates = {
+      date: today,
+      total: (dailyData.total || 0) + 1
+    };
+    
+    if (isNew) {
+      dailyUpdates.unique = (dailyData.unique || 0) + 1;
+    }
+    
+    // Simpan session IDs (max 100 terakhir untuk menghindari dokumen terlalu besar)
+    const sessions = dailyData.sessions || [];
+    if (isNew && !sessions.includes(sessionId)) {
+      sessions.push(sessionId);
+      if (sessions.length > 100) sessions.shift(); // Keep last 100
+      dailyUpdates.sessions = sessions;
+    }
+    
+    await setDoc(dailyRef, dailyUpdates);
+    
+    console.log("✅ Visitor tracked:", { total: updates.total, unique: updates.unique, today: dailyUpdates.total });
+    
+    // 3. Tampilkan di UI
+    await window.updateVisitorDisplay();
+    
+  } catch (error) {
+    console.error("❌ Gagal track visitor:", error);
+    // Fallback: tampilkan dari localStorage jika Firebase gagal
+    window.updateVisitorDisplayFallback();
+  }
+};
+
+// Update tampilan counter di halaman login
+window.updateVisitorDisplay = async function() {
+  try {
+    const statsRef = doc(db, "sisfo_data", "visitor_stats");
+    const statsSnap = await getDoc(statsRef);
+    const stats = statsSnap.exists() ? statsSnap.data() : { total: 0, unique: 0 };
+    
+    const today = getTodayDate();
+    const dailyRef = doc(db, "sisfo_data", `visitors_${today}`);
+    const dailySnap = await getDoc(dailyRef);
+    const daily = dailySnap.exists() ? dailySnap.data() : { total: 0 };
+    
+    // Animate numbers
+    animateNumber('totalVisitors', stats.total || 0);
+    animateNumber('todayVisitors', daily.total || 0);
+    animateNumber('uniqueVisitors', stats.unique || 0);
+    
+    // Tambahkan live indicator
+    const brandFooter = document.querySelector('.brand-footer');
+    if (brandFooter && !document.getElementById('visitorLive')) {
+      const liveEl = document.createElement('div');
+      liveEl.id = 'visitorLive';
+      liveEl.className = 'visitor-live';
+      liveEl.innerHTML = '<div class="visitor-live-dot"></div><span>Live tracking aktif</span>';
+      brandFooter.parentNode.insertBefore(liveEl, brandFooter);
+    }
+    
+  } catch (error) {
+    console.error("Gagal update visitor display:", error);
+  }
+};
+
+// Animasi angka (counting up effect)
+function animateNumber(elementId, target) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  
+  const duration = 1500; // ms
+  const start = parseInt(el.textContent) || 0;
+  const startTime = performance.now();
+  
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Easing function (ease-out)
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.floor(start + (target - start) * eased);
+    
+    el.textContent = current.toLocaleString('id-ID');
+    
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      el.textContent = target.toLocaleString('id-ID');
+    }
+  }
+  
+  requestAnimationFrame(update);
+}
+
+// Fallback jika Firebase error
+window.updateVisitorDisplayFallback = function() {
+  const statsRef = doc(db, "sisfo_data", "visitor_stats");
+  getDoc(statsRef).then(snap => {
+    if (snap.exists()) {
+      const stats = snap.data();
+      const today = getTodayDate();
+      return getDoc(doc(db, "sisfo_data", `visitors_${today}`)).then(dailySnap => {
+        const daily = dailySnap.exists() ? dailySnap.data() : { total: 0 };
+        animateNumber('totalVisitors', stats.total || 0);
+        animateNumber('todayVisitors', daily.total || 0);
+        animateNumber('uniqueVisitors', stats.unique || 0);
+      });
+    }
+  }).catch(e => console.log("Fallback juga gagal:", e));
+};
+
+// Panggil tracking saat halaman login dimuat
+// Cek apakah kita masih di halaman login
+function startVisitorTracking() {
+  const loginPage = document.getElementById('loginPage');
+  if (loginPage && loginPage.style.display !== 'none') {
+    window.trackVisitor();
+  }
+}
+
+// Jalankan tracking setelah Firebase siap
+if (db) {
+  // Delay sedikit agar DOM siap
+  setTimeout(startVisitorTracking, 500);
+}
