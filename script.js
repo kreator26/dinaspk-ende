@@ -1,9 +1,6 @@
-console.log("🟢 STEP 1: File script.js mulai dimuat...");
-
+// ============ FIREBASE SETUP ============
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-console.log("🟢 STEP 2: Import Firebase berhasil...");
 
 const firebaseConfig = {
   apiKey: "AIzaSyAVoYEeOwl4Ndzq4J4FsIKmoc8zyzRtodQ",
@@ -20,12 +17,11 @@ let db;
 try {
   const app = initializeApp(firebaseConfig);
   db = getFirestore(app);
-  console.log("🟢 STEP 3: ✅ Firebase berhasil diinisialisasi");
+  console.log("✅ Firebase berhasil diinisialisasi");
 } catch (error) {
-  console.error("🔴 STEP 3 FAILED: Gagal inisialisasi Firebase:", error);
+  console.error("❌ Gagal inisialisasi Firebase:", error);
 }
 
-console.log("🟢 STEP 4: Memulai parsing data sekolah...");
 // ============ DATA SEKOLAH (LENGKAP) ============
 const RAW_DATA = `KB ARARA	70027792	KB	Ende
 KB Arrahman Watubara	70005156	KB	Wewaria
@@ -741,23 +737,27 @@ const schools = RAW_DATA.split('\n').filter(l => l.trim()).map((line, idx) => {
     kecamatan: (parts[3] || '').trim()
   };
 });
-console.log("🟢 STEP 5: ✅ Data sekolah berhasil diparsing. Total:", schools.length, "sekolah");
 
 const PREDEFINED_TITLES = {
-  foto: ["Upacara Bendera", "Kegiatan Belajar Mengajar", "Perpustakaan Sekolah", "Lainnya (Ketik Manual)"],
-  video: ["Video Profil Sekolah", "Video Kegiatan Upacara", "Lainnya (Ketik Manual)"],
-  dokumen: ["Kurikulum Sekolah", "Data Siswa", "Lainnya (Ketik Manual)"]
+  foto: ["Upacara Bendera", "Kegiatan Belajar Mengajar", "Perpustakaan Sekolah", "Laboratorium Komputer", "Kantin Sekolah", "Lapangan Olahraga", "Musholla / Ruang Ibadah", "Ruang Guru", "Ruang Kepala Sekolah", "Ruang UKS", "Ekstrakurikuler", "Kunjungan Edukatif", "Peringatan Hari Besar", "Lomba Antar Kelas", "Wisuda / Pelepasan Siswa", "Rapat Dewan Guru", "Kegiatan Pramuka", "Gotong Royong Sekolah", "Fasilitas Sekolah", "Prestasi Siswa", "Lainnya (Ketik Manual)"],
+  video: ["Video Profil Sekolah", "Video Kegiatan Upacara", "Video Pembelajaran di Kelas", "Video Kegiatan Ekstrakurikuler", "Video Peringatan Hari Besar", "Video Lomba / Kompetisi", "Video Kunjungan Edukatif", "Video Tutorial / Edukasi", "Video Dokumentasi Kegiatan", "Video Wawancara / Testimoni", "Video Pengumuman Sekolah", "Lainnya (Ketik Manual)"],
+  dokumen: ["Kurikulum Sekolah", "Data Siswa", "Data Guru dan Tenaga Kependidikan", "Laporan Keuangan", "Rencana Kerja Sekolah (RKS)", "Program Kerja Tahunan", "Laporan Evaluasi", "Surat Keputusan (SK)", "Notulen Rapat", "Dokumen Akreditasi", "Dokumen BOS", "Panduan / Pedoman", "Formulir Pendaftaran", "Kalender Pendidikan", "Struktur Organisasi", "Lainnya (Ketik Manual)"]
 };
 
 const AUTH_KEY = 'sisfo_auth';
 let currentUser = null;
 
-// Helper
+// ============ HELPER FUNCTIONS ============
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// Firebase Functions
+function extractYoutubeId(url) {
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
+// ============ FIREBASE DB FUNCTIONS ============
 window.getPasswords = async function() {
   const docRef = doc(db, "sisfo_data", "passwords");
   const docSnap = await getDoc(docRef);
@@ -788,29 +788,198 @@ window.saveMedia = async function(mediaData) {
   await setDoc(doc(db, "sisfo_data", "media_global"), mediaData);
 };
 
-// ============ SHOW APP (DENGAN SAFETY CHECK) ============
-window.showApp = async function() {
-  console.log("🟢 STEP 6: Memanggil showApp()...");
+// ============ STATUS PENGIRIMAN ============
+let statusTab = 'belum';
+let statusPage = 1;
+const statusPerPage = 25;
+
+window.populateStatusFilters = function() {
+  const bentukSelect = document.getElementById('filterBentukStatus');
+  if (bentukSelect && bentukSelect.options.length <= 1) {
+    const bentukSet = new Set(schools.map(s => s.bentuk));
+    [...bentukSet].sort().forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b;
+      opt.textContent = b;
+      bentukSelect.appendChild(opt);
+    });
+  }
+};
+
+window.switchStatusTab = function(tab, btn) {
+  statusTab = tab;
+  statusPage = 1;
+  document.querySelectorAll('#adminStatusSection .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.renderStatusTable();
+};
+
+window.renderStatusSection = async function() {
+  const media = await window.getMedia();
+  let sudahCount = 0, belumCount = 0;
   
+  schools.forEach(s => {
+    const m = media[s.id];
+    const totalMedia = m ? ((m.foto?.length || 0) + (m.video?.length || 0) + (m.dokumen?.length || 0)) : 0;
+    if (totalMedia > 0) sudahCount++; else belumCount++;
+  });
+  
+  const persen = schools.length > 0 ? ((sudahCount / schools.length) * 100).toFixed(1) : 0;
+  document.getElementById('countSudah').textContent = sudahCount;
+  document.getElementById('countBelum').textContent = belumCount;
+  document.getElementById('countPersen').textContent = persen + '%';
+  document.getElementById('tabSudah').textContent = sudahCount;
+  document.getElementById('tabBelum').textContent = belumCount;
+  window.renderStatusTable();
+};
+
+window.renderStatusTable = async function() {
+  const q = document.getElementById('searchStatus').value.toLowerCase();
+  const bentuk = document.getElementById('filterBentukStatus').value;
+  const media = await window.getMedia();
+  
+  let filtered = schools.filter(s => {
+    const m = media[s.id];
+    const totalMedia = m ? ((m.foto?.length || 0) + (m.video?.length || 0) + (m.dokumen?.length || 0)) : 0;
+    const isSudah = totalMedia > 0;
+    return (statusTab === 'sudah' ? isSudah : !isSudah) &&
+           (!q || s.nama.toLowerCase().includes(q) || s.npsn.includes(q) || s.kecamatan.toLowerCase().includes(q)) &&
+           (!bentuk || s.bentuk === bentuk);
+  });
+  
+  const tbody = document.getElementById('statusTableBody');
+  const totalPages = Math.ceil(filtered.length / statusPerPage) || 1;
+  if (statusPage > totalPages) statusPage = totalPages;
+  const start = (statusPage - 1) * statusPerPage;
+  const pageData = filtered.slice(start, start + statusPerPage);
+  
+  if (!pageData.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">${statusTab === 'sudah' ? 'Belum ada sekolah yang mengirim media' : '🎉 Semua sekolah sudah mengirim!'}</td></tr>`;
+  } else {
+    tbody.innerHTML = pageData.map((s, idx) => {
+      const m = media[s.id];
+      const fotoCount = m?.foto?.length || 0;
+      const videoCount = m?.video?.length || 0;
+      const dokumenCount = m?.dokumen?.length || 0;
+      const statusBadge = statusTab === 'sudah' 
+        ? `<span class="badge badge-SD" style="background:#d1fae5; color:#065f46;">✅ Aktif</span><div style="font-size:0.75rem; color:var(--muted); margin-top:0.25rem;">📸 ${fotoCount} | 🎬 ${videoCount} | 📄 ${dokumenCount}</div>`
+        : `<span class="badge" style="background:#fef3c7; color:#92400e;">⏳ Belum</span>`;
+      
+      return `<tr>
+        <td>${start + idx + 1}</td>
+        <td><strong>${escapeHtml(s.nama)}</strong></td>
+        <td><code>${s.npsn}</code></td>
+        <td><span class="badge badge-${s.bentuk}">${s.bentuk}</span></td>
+        <td>${escapeHtml(s.kecamatan)}</td>
+        <td>${statusBadge}</td>
+        <td><button class="btn btn-sm btn-outline" onclick="window.viewSchoolMedia(${s.id})">👁️ Lihat</button></td>
+      </tr>`;
+    }).join('');
+  }
+  
+  const pag = document.getElementById('statusPagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; }
+  else {
+    let html = `<button class="page-btn" onclick="window.goStatusPage(${statusPage-1})" ${statusPage===1?'disabled':''}>‹</button>`;
+    for (let i = Math.max(1, statusPage-2); i <= Math.min(totalPages, statusPage+2); i++) {
+      html += `<button class="page-btn ${i===statusPage?'active':''}" onclick="window.goStatusPage(${i})">${i}</button>`;
+    }
+    html += `<button class="page-btn" onclick="window.goStatusPage(${statusPage+1})" ${statusPage===totalPages?'disabled':''}>›</button>`;
+    pag.innerHTML = html;
+  }
+};
+
+window.goStatusPage = async function(p) {
+  const media = await window.getMedia();
+  const q = document.getElementById('searchStatus').value.toLowerCase();
+  const bentuk = document.getElementById('filterBentukStatus').value;
+  const filtered = schools.filter(s => {
+    const m = media[s.id];
+    const totalMedia = m ? ((m.foto?.length || 0) + (m.video?.length || 0) + (m.dokumen?.length || 0)) : 0;
+    const isSudah = totalMedia > 0;
+    return (statusTab === 'sudah' ? isSudah : !isSudah) &&
+           (!q || s.nama.toLowerCase().includes(q) || s.npsn.includes(q) || s.kecamatan.toLowerCase().includes(q)) &&
+           (!bentuk || s.bentuk === bentuk);
+  });
+  const totalPages = Math.ceil(filtered.length / statusPerPage) || 1;
+  if (p < 1 || p > totalPages) return;
+  statusPage = p;
+  window.renderStatusTable();
+};
+
+// ============ TOP SCHOOLS ============
+window.renderTopSchools = async function() {
+  const container = document.getElementById('topSchoolsList');
+  const section = document.getElementById('topSchoolsSection');
+  if (!container || !section) return;
+  
+  const media = await window.getMedia();
+  const schoolStats = schools.map(s => {
+    const m = media[s.id] || { foto: [], video: [], dokumen: [] };
+    return { ...s, total: (m.foto?.length||0) + (m.video?.length||0) + (m.dokumen?.length||0) };
+  }).filter(s => s.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
+  
+  if (activeSchools.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  
+  const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+  const rankColors = ['#fef3c7', '#f1f5f9', '#fed7aa', '#e0e7ff', '#f3e8ff'];
+  
+  container.innerHTML = activeSchools.map((s, idx) => `
+    <div class="dash-card" style="background:${rankColors[idx]}; border:2px solid ${idx<3?['#f59e0b','#94a3b8','#ea580c'][idx]:'transparent'}; cursor:pointer;" onclick="window.viewSchoolMedia(${s.id})">
+      <div style="font-size:1.5rem; margin-bottom:0.5rem;">${medals[idx]} ${escapeHtml(s.nama)}</div>
+      <div style="font-size:0.85rem; color:#64748b;">${escapeHtml(s.kecamatan)} • ${s.bentuk}</div>
+      <div style="font-size:1.25rem; font-weight:700; margin-top:0.5rem;">📊 Total: ${s.total} media</div>
+    </div>
+  `).join('');
+};
+
+// ============ DASHBOARD & APP FLOW ============
+window.renderDashboard = async function() {
+  const grid = document.getElementById('dashboardGrid');
+  if (!grid) return;
+  const media = await window.getMedia();
+  
+  if (currentUser.type === 'admin') {
+    const total = schools.length;
+    const withMedia = Object.keys(media).filter(id => {
+      const m = media[id];
+      return (m.foto?.length||0) + (m.video?.length||0) + (m.dokumen?.length||0) > 0;
+    }).length;
+    grid.innerHTML = `
+      <div class="dash-card"><div class="dash-label">🏫 Total Sekolah</div><div class="dash-value">${total}</div></div>
+      <div class="dash-card accent"><div class="dash-label">📁 Sudah Kirim</div><div class="dash-value">${withMedia}</div><div class="dash-sub">${((withMedia/total)*100).toFixed(1)}%</div></div>
+    `;
+    await window.renderTopSchools();
+  } else {
+    const m = media[currentUser.schoolId] || { foto: [], video: [], dokumen: [] };
+    grid.innerHTML = `
+      <div class="dash-card"><div class="dash-label">📸 Foto</div><div class="dash-value">${m.foto.length}</div></div>
+      <div class="dash-card accent"><div class="dash-label">🎬 Video</div><div class="dash-value">${m.video.length}</div></div>
+      <div class="dash-card success"><div class="dash-label">📄 Dokumen</div><div class="dash-value">${m.dokumen.length}</div></div>
+    `;
+  }
+};
+
+window.showApp = async function() {
   const loginPage = document.getElementById('loginPage');
   const mainApp = document.getElementById('mainApp');
   
-  // 🛡️ SAFETY CHECK: Jika elemen HTML hilang, beri tahu user!
   if (!loginPage || !mainApp) {
-    alert("ERROR FATAL: Elemen HTML 'loginPage' atau 'mainApp' TIDAK DITEMUKAN di index.html!\n\nMohon periksa file index.html Anda.");
-    console.error("Elemen tidak ditemukan. Cek index.html Anda.");
+    alert("ERROR: Elemen HTML tidak ditemukan. Periksa index.html Anda.");
     return;
   }
 
   loginPage.style.display = 'none';
   mainApp.classList.add('active');
-  console.log("🟢 STEP 7: Tampilan dialihkan ke Main App.");
   
   try {
     if (currentUser.type === 'admin') {
       document.getElementById('userRole').textContent = 'ADMIN DINAS';
       document.getElementById('userName').textContent = 'Administrator';
       window.showSection('dashboard');
+      await window.renderStatusSection();
+      window.populateStatusFilters();
       await window.renderDashboard();
       await window.renderSchoolTable();
     } else {
@@ -825,7 +994,6 @@ window.showApp = async function() {
       await window.renderDashboard();
       await window.renderMyMedia();
     }
-    console.log("🟢 STEP 8: ✅ showApp() selesai tanpa error.");
   } catch (err) {
     console.error("🔴 ERROR di dalam showApp:", err);
     alert("Terjadi error saat memuat dashboard: " + err.message);
@@ -883,59 +1051,429 @@ window.showSection = function(name) {
   if (target) target.classList.add('active');
 };
 
-// ============ DASHBOARD SEDERHANA ============
-window.renderDashboard = async function() {
-  const grid = document.getElementById('dashboardGrid');
-  if (!grid) return;
-  const media = await window.getMedia();
+window.changePassword = async function() {
+  const oldPass = document.getElementById('oldPass').value;
+  const newPass = document.getElementById('newPass').value;
+  const confirmPass = document.getElementById('confirmPass').value;
+  const msgEl = document.getElementById('passMsg');
   
-  if (currentUser.type === 'admin') {
-    grid.innerHTML = `
-      <div class="dash-card"><div class="dash-label">🏫 Total Sekolah</div><div class="dash-value">${schools.length}</div></div>
-      <div class="dash-card success"><div class="dash-label">📊 Status</div><div class="dash-value">Aktif</div></div>
-    `;
-  } else {
-    const m = media[currentUser.schoolId] || { foto: [], video: [], dokumen: [] };
-    grid.innerHTML = `
-      <div class="dash-card"><div class="dash-label">📸 Foto</div><div class="dash-value">${m.foto.length}</div></div>
-      <div class="dash-card"><div class="dash-label">🎬 Video</div><div class="dash-value">${m.video.length}</div></div>
-    `;
+  try {
+    if (currentUser.type === 'admin') {
+      const p = await window.getPasswords();
+      if (oldPass !== (p['_admin'] || 'admin2026')) {
+        msgEl.innerHTML = '<div class="alert alert-warning">Password lama salah!</div>';
+        return;
+      }
+      p['_admin'] = newPass;
+      await window.savePasswords(p);
+    } else {
+      const currentSchoolPass = await window.getSchoolPassword(currentUser.school.npsn);
+      if (oldPass !== currentSchoolPass) {
+        msgEl.innerHTML = '<div class="alert alert-warning">Password lama salah!</div>';
+        return;
+      }
+      if (newPass.length < 6) {
+        msgEl.innerHTML = '<div class="alert alert-warning">Password minimal 6 karakter!</div>';
+        return;
+      }
+      if (newPass !== confirmPass) {
+        msgEl.innerHTML = '<div class="alert alert-warning">Konfirmasi password tidak cocok!</div>';
+        return;
+      }
+      await window.setSchoolPassword(currentUser.school.npsn, newPass);
+    }
+    msgEl.innerHTML = '<div class="alert" style="background:#d1fae5; color:#065f46;">✓ Password berhasil diubah!</div>';
+    document.getElementById('oldPass').value = '';
+    document.getElementById('newPass').value = '';
+    document.getElementById('confirmPass').value = '';
+  } catch (error) {
+    alert("Gagal mengubah password.");
   }
 };
 
+// ============ ADMIN: SCHOOL TABLE ============
+let filteredSchools = [...schools];
+let currentPage = 1;
+const perPage = 25;
+
 window.renderSchoolTable = async function() {
+  const q = document.getElementById('searchSchool').value.toLowerCase();
+  const bentuk = document.getElementById('filterBentuk').value;
+  const kec = document.getElementById('filterKec').value;
+  
+  filteredSchools = schools.filter(s => {
+    return (!q || s.nama.toLowerCase().includes(q) || s.npsn.includes(q) || s.kecamatan.toLowerCase().includes(q)) &&
+           (!bentuk || s.bentuk === bentuk) && (!kec || s.kecamatan === kec);
+  });
+  
   const tbody = document.getElementById('schoolTableBody');
-  if (!tbody) return;
-  tbody.innerHTML = schools.slice(0, 5).map(s => `
-    <tr><td>${escapeHtml(s.nama)}</td><td>${s.npsn}</td><td>${s.bentuk}</td></tr>
-  `).join('');
+  const totalPages = Math.ceil(filteredSchools.length / perPage) || 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * perPage;
+  const pageData = filteredSchools.slice(start, start + perPage);
+  const media = await window.getMedia();
+  
+  if (!pageData.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Tidak ada data</td></tr>';
+  } else {
+    tbody.innerHTML = pageData.map(s => {
+      const m = media[s.id] || { foto: [], video: [], dokumen: [] };
+      const count = (m.foto?.length || 0) + (m.video?.length || 0) + (m.dokumen?.length || 0);
+      return `<tr onclick="window.viewSchoolMedia(${s.id})">
+        <td><strong>${escapeHtml(s.nama)}</strong></td>
+        <td><code>${s.npsn}</code></td>
+        <td><span class="badge badge-${s.bentuk}">${s.bentuk}</span></td>
+        <td>${escapeHtml(s.kecamatan)}</td>
+        <td>${count > 0 ? `<span class="badge badge-SD">${count} media</span>` : '<span style="color:var(--muted);">Belum ada</span>'}</td>
+      </tr>`;
+    }).join('');
+  }
+  
+  const pag = document.getElementById('pagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; }
+  else {
+    let html = `<button class="page-btn" onclick="window.goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+    for (let i = Math.max(1, currentPage-2); i <= Math.min(totalPages, currentPage+2); i++) {
+      html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="window.goPage(${i})">${i}</button>`;
+    }
+    html += `<button class="page-btn" onclick="window.goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+    pag.innerHTML = html;
+  }
 };
+
+window.goPage = function(p) {
+  const totalPages = Math.ceil(filteredSchools.length / perPage);
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  window.renderSchoolTable();
+};
+
+window.viewSchoolMedia = async function(schoolId) {
+  const school = schools.find(s => s.id === schoolId);
+  if (!school) return;
+  const origUser = currentUser;
+  currentUser = { type: 'sekolah', schoolId, school };
+  await window.renderMyMedia();
+  window.showSection('sekolahMedia');
+  
+  const mediaSection = document.getElementById('section-sekolahMedia');
+  if (!document.getElementById('backBtn')) {
+    const btn = document.createElement('button');
+    btn.id = 'backBtn';
+    btn.className = 'btn btn-outline btn-sm';
+    btn.style.marginBottom = '1rem';
+    btn.textContent = '← Kembali ke Dashboard';
+    btn.onclick = async () => {
+      currentUser = origUser;
+      btn.remove();
+      window.showSection('dashboard');
+      await window.renderDashboard();
+      await window.renderSchoolTable();
+      await window.renderStatusSection();
+    };
+    mediaSection.insertBefore(btn, mediaSection.firstChild);
+  }
+};
+
+// ============ SEKOLAH: MY MEDIA ============
+let currentMediaTab = 'foto';
+let currentFormType = null;
 
 window.renderMyMedia = async function() {
-  const gridFoto = document.getElementById('gridFoto');
-  if (gridFoto) gridFoto.innerHTML = '<div class="empty">Belum ada foto</div>';
+  if (!currentUser || currentUser.type !== 'sekolah') return;
+  const allMedia = await window.getMedia();
+  const m = allMedia[currentUser.schoolId] || { foto: [], video: [], dokumen: [] };
+  
+  document.getElementById('countFoto').textContent = m.foto?.length || 0;
+  document.getElementById('countVideo').textContent = m.video?.length || 0;
+  document.getElementById('countDokumen').textContent = m.dokumen?.length || 0;
+  
+  window.renderFoto(m.foto || []);
+  window.renderVideo(m.video || []);
+  window.renderDokumen(m.dokumen || []);
 };
 
+window.switchMediaTab = function(tab, btn) {
+  currentMediaTab = tab;
+  document.querySelectorAll('#section-sekolahMedia .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#section-sekolahMedia .section').forEach(s => s.classList.remove('active'));
+  document.getElementById('media-' + tab).classList.add('active');
+};
+
+window.renderFoto = function(items) {
+  const grid = document.getElementById('gridFoto');
+  if (!items.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📷</div>Belum ada foto</div>'; return; }
+  grid.innerHTML = items.map(i => `
+    <div class="media-card">
+      <div class="media-thumb" onclick="window.previewMedia('foto',${i.id})">
+        <img src="${i.url}" alt="${escapeHtml(i.title)}" onerror="this.src='https://via.placeholder.com/400x250?text=Foto'">
+      </div>
+      <div class="media-body"><div class="media-title">${escapeHtml(i.title)}</div><div class="media-desc">${escapeHtml(i.desc || '')}</div></div>
+      <div class="media-actions">
+        <button class="btn btn-sm btn-outline" onclick="window.previewMedia('foto',${i.id})">Lihat</button>
+        <button class="btn btn-sm btn-danger" onclick="window.hapusMedia('foto',${i.id})">Hapus</button>
+      </div>
+    </div>`).join('');
+};
+
+window.renderVideo = function(items) {
+  const grid = document.getElementById('gridVideo');
+  if (!items.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">🎬</div>Belum ada video</div>'; return; }
+  grid.innerHTML = items.map(i => {
+    const ytId = extractYoutubeId(i.url);
+    const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}` : i.url;
+    return `<div class="media-card">
+      <div class="media-thumb"><div class="video-wrap"><iframe src="${embedUrl}" allowfullscreen></iframe></div></div>
+      <div class="media-body"><div class="media-title">${escapeHtml(i.title)}</div><div class="media-desc">${escapeHtml(i.desc || '')}</div></div>
+      <div class="media-actions">
+        <button class="btn btn-sm btn-outline" onclick="window.previewMedia('video',${i.id})">Perbesar</button>
+        <button class="btn btn-sm btn-danger" onclick="window.hapusMedia('video',${i.id})">Hapus</button>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window.renderDokumen = function(items) {
+  const grid = document.getElementById('gridDokumen');
+  if (!items.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📄</div>Belum ada dokumen</div>'; return; }
+  grid.innerHTML = items.map(i => `
+    <div class="media-card">
+      <div class="media-thumb"><div class="doc-icon">📄</div></div>
+      <div class="media-body"><div class="media-title">${escapeHtml(i.title)}</div><div class="media-desc">${escapeHtml(i.desc || '')}</div></div>
+      <div class="media-actions">
+        <button class="btn btn-sm btn-outline" onclick="window.previewMedia('dokumen',${i.id})">Buka</button>
+        <a href="${i.url}" target="_blank" class="btn btn-sm" style="text-decoration:none;">↗</a>
+        <button class="btn btn-sm btn-danger" onclick="window.hapusMedia('dokumen',${i.id})">Hapus</button>
+      </div>
+    </div>`).join('');
+};
+
+window.handleTitleSelect = function() {
+  const select = document.getElementById('fTitleSelect');
+  const customGroup = document.getElementById('fTitleCustomGroup');
+  const customInput = document.getElementById('fTitleCustom');
+  if (select.value === 'Lainnya (Ketik Manual)') {
+    customGroup.style.display = 'block';
+    customInput.required = true;
+  } else {
+    customGroup.style.display = 'none';
+    customInput.required = false;
+    customInput.value = '';
+  }
+};
+
+window.openMediaForm = function(type) {
+  currentFormType = type;
+  document.getElementById('formTitle').textContent = 'Tambah ' + (type === 'foto' ? 'Foto' : type === 'video' ? 'Video' : 'Dokumen');
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fUrl').value = '';
+  document.getElementById('fFile').value = '';
+  document.getElementById('fTitleCustom').value = '';
+  document.getElementById('fTitleCustomGroup').style.display = 'none';
+  
+  const select = document.getElementById('fTitleSelect');
+  select.innerHTML = '<option value="">-- Pilih Judul --</option>';
+  PREDEFINED_TITLES[type].forEach(title => {
+    const option = document.createElement('option');
+    option.value = title;
+    option.textContent = title;
+    select.appendChild(option);
+  });
+  
+  document.getElementById('fFileGroup').style.display = type === 'foto' ? 'block' : 'none';
+  document.getElementById('fUrlLabel').textContent = type === 'foto' ? 'URL Gambar (atau Upload)' : (type === 'video' ? 'URL YouTube' : 'URL Dokumen');
+  document.getElementById('formModal').classList.add('active');
+};
+
+window.closeForm = function() { document.getElementById('formModal').classList.remove('active'); };
+
+window.submitMedia = async function(e) {
+  e.preventDefault();
+  const titleSelect = document.getElementById('fTitleSelect').value;
+  const titleCustom = document.getElementById('fTitleCustom').value;
+  const title = titleSelect === 'Lainnya (Ketik Manual)' ? titleCustom : titleSelect;
+  const desc = document.getElementById('fDesc').value;
+  const fileInput = document.getElementById('fFile');
+  let url = document.getElementById('fUrl').value;
+  
+  const finish = async (finalUrl) => {
+    const media = await window.getMedia();
+    if (!media[currentUser.schoolId]) media[currentUser.schoolId] = { foto: [], video: [], dokumen: [] };
+    media[currentUser.schoolId][currentFormType].push({ id: Date.now(), title, desc, url: finalUrl });
+    await window.saveMedia(media);
+    await window.renderMyMedia();
+    await window.renderDashboard();
+    window.closeForm();
+  };
+  
+  if (currentFormType === 'foto' && fileInput.files[0] && !url) {
+    const file = fileInput.files[0];
+    if (file.size > 300000) { alert('Ukuran file terlalu besar (Maks 300KB).'); return; }
+    const reader = new FileReader();
+    reader.onload = async (ev) => await finish(ev.target.result);
+    reader.readAsDataURL(file);
+  } else if (currentFormType === 'video') {
+    const ytId = extractYoutubeId(url);
+    await finish(ytId ? `https://www.youtube.com/embed/${ytId}` : url);
+  } else {
+    await finish(url);
+  }
+};
+
+window.hapusMedia = async function(type, id) {
+  if (!confirm('Hapus item ini?')) return;
+  const media = await window.getMedia();
+  if (!media[currentUser.schoolId]) return;
+  media[currentUser.schoolId][type] = media[currentUser.schoolId][type].filter(i => i.id !== id);
+  await window.saveMedia(media);
+  await window.renderMyMedia();
+  await window.renderDashboard();
+};
+
+window.previewMedia = async function(type, id) {
+  const media = await window.getMedia();
+  const schoolMedia = media[currentUser.schoolId];
+  if (!schoolMedia) return;
+  const item = schoolMedia[type].find(i => i.id === id);
+  if (!item) return;
+  
+  let html = '';
+  if (type === 'foto') {
+    html = `<img src="${item.url}" style="width:100%; display:block;"><div style="padding:1rem;"><h3>${escapeHtml(item.title)}</h3></div>`;
+  } else if (type === 'video') {
+    const ytId = extractYoutubeId(item.url);
+    const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}` : item.url;
+    html = `<div style="position:relative; padding-bottom:56.25%;"><iframe src="${embedUrl}" style="position:absolute; inset:0; width:100%; height:100%; border:0;" allowfullscreen></iframe></div><div style="padding:1rem;"><h3>${escapeHtml(item.title)}</h3></div>`;
+  } else {
+    html = `<iframe src="${item.url}" style="width:100%; height:70vh; border:0;"></iframe><div style="padding:1rem;"><h3>${escapeHtml(item.title)}</h3></div>`;
+  }
+  document.getElementById('previewContent').innerHTML = html;
+  document.getElementById('previewModal').classList.add('active');
+};
+
+window.closePreview = function() { document.getElementById('previewModal').classList.remove('active'); };
+
+// ============ FILTER EVENTS ============
+document.getElementById('searchSchool').addEventListener('input', () => { currentPage = 1; window.renderSchoolTable(); });
+document.getElementById('filterBentuk').addEventListener('change', () => { currentPage = 1; window.renderSchoolTable(); });
+document.getElementById('filterKec').addEventListener('change', () => { currentPage = 1; window.renderSchoolTable(); });
+
+const bentukSet = new Set(schools.map(s => s.bentuk));
+const kecSet = new Set(schools.map(s => s.kecamatan));
+const bentukSelect = document.getElementById('filterBentuk');
+const kecSelect = document.getElementById('filterKec');
+[...bentukSet].sort().forEach(b => { const opt = document.createElement('option'); opt.value = b; opt.textContent = b; bentukSelect.appendChild(opt); });
+[...kecSet].sort().forEach(k => { const opt = document.createElement('option'); opt.value = k; opt.textContent = k; kecSelect.appendChild(opt); });
+
+document.querySelectorAll('.modal').forEach(m => { m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); }); });
+
+const searchStatusEl = document.getElementById('searchStatus');
+if (searchStatusEl) searchStatusEl.addEventListener('input', () => { statusPage = 1; window.renderStatusTable(); });
+const filterBentukStatusEl = document.getElementById('filterBentukStatus');
+if (filterBentukStatusEl) filterBentukStatusEl.addEventListener('change', () => { statusPage = 1; window.renderStatusTable(); });
+
 // ============ AUTO LOGIN ============
-console.log("🟢 STEP 9: Mengecek Auto Login...");
 const savedAuth = localStorage.getItem(AUTH_KEY);
 if (savedAuth) {
   try {
     currentUser = JSON.parse(savedAuth);
-    if (currentUser.type === 'sekolah') {
-      currentUser.school = schools.find(s => s.id === currentUser.schoolId);
-    }
-    if (currentUser && (currentUser.type === 'admin' || currentUser.school)) {
-      console.log("🟢 STEP 10: Auto login terdeteksi, memanggil showApp()...");
-      window.showApp();
-    } else {
-      console.log("🟢 STEP 10: Data auto login tidak valid, dihapus.");
-      localStorage.removeItem(AUTH_KEY);
-    }
-  } catch(e) {
-    console.error("🔴 Error parsing auto login:", e);
-    localStorage.removeItem(AUTH_KEY);
+    if (currentUser.type === 'sekolah') currentUser.school = schools.find(s => s.id === currentUser.schoolId);
+    if (currentUser && (currentUser.type === 'admin' || currentUser.school)) window.showApp();
+    else localStorage.removeItem(AUTH_KEY);
+  } catch(e) { localStorage.removeItem(AUTH_KEY); }
+}
+
+// ============ 📊 VISITOR TRACKING SYSTEM ============
+function initVisitorSession() {
+  let sessionId = sessionStorage.getItem('visitor_session_id');
+  if (!sessionId) {
+    sessionId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('visitor_session_id', sessionId);
+    sessionStorage.setItem('visitor_is_new', 'true');
+  } else {
+    sessionStorage.setItem('visitor_is_new', 'false');
   }
-} else {
-  console.log("🟢 STEP 10: Tidak ada auto login. Menampilkan halaman login.");
+  return sessionId;
+}
+
+function getTodayDate() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+window.trackVisitor = async function() {
+  try {
+    const sessionId = initVisitorSession();
+    const isNew = sessionStorage.getItem('visitor_is_new') === 'true';
+    const today = getTodayDate();
+    
+    const statsRef = doc(db, "sisfo_data", "visitor_stats");
+    const statsSnap = await getDoc(statsRef);
+    const statsData = statsSnap.exists() ? statsSnap.data() : { total: 0, unique: 0 };
+    
+    const updates = { total: (statsData.total || 0) + 1, lastUpdated: new Date().toISOString() };
+    if (isNew) updates.unique = (statsData.unique || 0) + 1;
+    await setDoc(statsRef, updates);
+    
+    const dailyRef = doc(db, "sisfo_data", `visitors_${today}`);
+    const dailySnap = await getDoc(dailyRef);
+    const dailyData = dailySnap.exists() ? dailySnap.data() : { date: today, total: 0, unique: 0, sessions: [] };
+    
+    const dailyUpdates = { date: today, total: (dailyData.total || 0) + 1 };
+    if (isNew) dailyUpdates.unique = (dailyData.unique || 0) + 1;
+    
+    const sessions = dailyData.sessions || [];
+    if (isNew && !sessions.includes(sessionId)) {
+      sessions.push(sessionId);
+      if (sessions.length > 100) sessions.shift();
+      dailyUpdates.sessions = sessions;
+    }
+    await setDoc(dailyRef, dailyUpdates);
+    await window.updateVisitorDisplay();
+  } catch (error) { console.error('❌ Gagal track visitor:', error); }
+};
+
+window.updateVisitorDisplay = async function() {
+  try {
+    const statsSnap = await getDoc(doc(db, "sisfo_data", "visitor_stats"));
+    const stats = statsSnap.exists() ? statsSnap.data() : { total: 0, unique: 0 };
+    const dailySnap = await getDoc(doc(db, "sisfo_data", `visitors_${getTodayDate()}`));
+    const daily = dailySnap.exists() ? dailySnap.data() : { total: 0 };
+    
+    animateNumber('totalVisitors', stats.total || 0);
+    animateNumber('todayVisitors', daily.total || 0);
+    animateNumber('uniqueVisitors', stats.unique || 0);
+  } catch (error) { console.error('❌ Gagal update visitor display:', error); }
+};
+
+function animateNumber(elementId, target) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  const duration = 1500;
+  const start = parseInt(el.textContent.replace(/[^0-9]/g, '')) || 0;
+  const startTime = performance.now();
+  
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.floor(start + (target - start) * eased);
+    el.textContent = current.toLocaleString('id-ID');
+    if (progress < 1) requestAnimationFrame(update);
+    else el.textContent = target.toLocaleString('id-ID');
+  }
+  requestAnimationFrame(update);
+}
+
+function startVisitorTracking() {
+  if (document.getElementById('loginPage')) window.trackVisitor();
+}
+
+if (typeof db !== 'undefined' && db) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(startVisitorTracking, 800));
+  } else {
+    setTimeout(startVisitorTracking, 800);
+  }
 }
