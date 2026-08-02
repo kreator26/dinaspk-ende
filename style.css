@@ -42,7 +42,6 @@ body {
   padding: 1rem;
 }
 
-/* Animated Background */
 .login-bg {
   position: absolute;
   inset: 0;
@@ -109,7 +108,6 @@ body {
   background-size: 40px 40px;
 }
 
-/* Login Container (Split Layout) */
 .login-container {
   display: flex;
   width: 100%;
@@ -128,7 +126,6 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Left Branding Panel */
 .login-brand {
   flex: 1;
   background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #2563eb 100%);
@@ -238,7 +235,6 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Right Form Panel */
 .login-form-wrap {
   flex: 1;
   display: flex;
@@ -278,7 +274,6 @@ body {
   color: #64748b;
 }
 
-/* Error Message */
 .login-error {
   display: none;
   align-items: center;
@@ -310,7 +305,6 @@ body {
   80% { transform: translateX(4px); }
 }
 
-/* Modern Form Groups */
 .form-group-modern {
   margin-bottom: 1.25rem;
 }
@@ -360,7 +354,6 @@ body {
   color: #94a3b8;
 }
 
-/* Login Button */
 .btn-login {
   width: 100%;
   padding: 1rem 1.5rem;
@@ -401,19 +394,9 @@ body {
   transform: translateX(4px);
 }
 
-/* Login Footer */
-.login-footer {
-  text-align: center;
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-.login-footer p {
-  font-size: 0.8rem;
-  color: #94a3b8;
-}
-/* ============ LOGIN FOOTER & CONTACT ============ */
+/* =========================================
+   3. LOGIN FOOTER & CONTACT
+   ========================================= */
 .login-footer {
   text-align: center;
   margin-top: 1.5rem;
@@ -441,7 +424,7 @@ body {
   padding: 0.5rem 1rem 0.5rem 0.5rem;
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border: 1px solid #bbf7d0;
-  border-radius: 50px; /* Membuat bentuk pill/kapsul */
+  border-radius: 50px;
   text-decoration: none;
   color: #166534;
   font-size: 0.85rem;
@@ -462,7 +445,6 @@ body {
   transform: translateY(0);
 }
 
-/* 🆕 Style untuk Foto Profil */
 .contact-avatar {
   width: 42px;
   height: 42px;
@@ -493,47 +475,9 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* Responsive untuk mobile */
-@media (max-width: 600px) {
-  .contact-item {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem 0.4rem 0.4rem;
-    max-width: 280px;
-  }
-  
-  .contact-avatar {
-    width: 38px;
-    height: 38px;
-  }
-  
-  .contact-icon {
-    width: 28px;
-    height: 28px;
-  }
-  
-  .contact-icon svg {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-@media (max-width: 400px) {
-  .contact-item {
-    font-size: 0.75rem;
-    max-width: 260px;
-  }
-  
-  .contact-avatar {
-    width: 34px;
-    height: 34px;
-  }
-  
-  .footer-title {
-    font-size: 0.75rem;
-  }
-}
-
-/* ============ VISITOR STATS ============ */
+/* =========================================
+   4. VISITOR STATS
+   ========================================= */
 .visitor-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -591,7 +535,6 @@ body {
   font-weight: 500;
 }
 
-/* Live Indicator */
 .visitor-live-indicator {
   display: flex;
   align-items: center;
@@ -627,10 +570,8 @@ body {
 }
 
 /* =========================================
-   3. LOGIN RESPONSIVE - MOBILE OPTIMIZED
+   5. LOGIN RESPONSIVE - MOBILE OPTIMIZED
    ========================================= */
-
-/* Tablet & Mobile Large */
 @media (max-width: 900px) {
   .login-container {
     flex-direction: column;
@@ -638,38 +579,14 @@ body {
     max-width: 480px;
     margin: 1rem;
   }
+  .login-brand { padding: 2rem 1.5rem; }
+  .login-brand h1 { font-size: 1.6rem; }
+  .brand-sub { font-size: 0.9rem; }
+  .brand-sub2 { margin-bottom: 1.25rem; }
+  .brand-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .feature-item { padding: 0.5rem 0.7rem; font-size: 0.85rem; }
+  .feature-icon { font-size: 1.1rem; }
   
-  .login-brand {
-    padding: 2rem 1.5rem;
-  }
-  
-  .login-brand h1 {
-    font-size: 1.6rem;
-  }
-  
-  .brand-sub {
-    font-size: 0.9rem;
-  }
-  
-  .brand-sub2 {
-    margin-bottom: 1.25rem;
-  }
-  
-  .brand-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-  }
-  
-  .feature-item {
-    padding: 0.5rem 0.7rem;
-    font-size: 0.85rem;
-  }
-  
-  .feature-icon {
-    font-size: 1.1rem;
-  }
-  
-  /* Visitor stats: layout 3 kolom compact */
   .visitor-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -677,87 +594,26 @@ body {
     padding: 0.75rem;
     margin-top: 1.25rem;
   }
-  
-  .visitor-stat-content {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.25rem;
-  }
-  
-  .visitor-stat-icon {
-    font-size: 1.25rem;
-  }
-  
-  .visitor-stat-value {
-    font-size: 1rem;
-  }
-  
-  .visitor-stat-label {
-    font-size: 0.6rem;
-    text-align: center;
-  }
-  
-  .visitor-live-indicator {
-    font-size: 0.7rem;
-    margin-top: 0.75rem;
-  }
-  
-  .login-form-wrap {
-    padding: 2rem 1.5rem;
-  }
+  .visitor-stat-content { flex-direction: column; align-items: center; text-align: center; gap: 0.25rem; }
+  .visitor-stat-icon { font-size: 1.25rem; }
+  .visitor-stat-value { font-size: 1rem; }
+  .visitor-stat-label { font-size: 0.6rem; text-align: center; }
+  .visitor-live-indicator { font-size: 0.7rem; margin-top: 0.75rem; }
+  .login-form-wrap { padding: 2rem 1.5rem; }
 }
 
-/* Mobile Standard */
 @media (max-width: 600px) {
-  .login-page {
-    padding: 0.75rem;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  }
+  .login-page { padding: 0.75rem; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+  .login-container { border-radius: 16px; margin: 0.5rem; }
+  .login-brand { padding: 1.5rem 1.25rem; }
+  .login-brand h1 { font-size: 1.4rem; line-height: 1.25; }
+  .brand-sub { font-size: 0.85rem; }
+  .brand-sub2 { font-size: 0.75rem; margin-bottom: 1rem; }
+  .brand-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .brand-features { gap: 0.5rem; }
+  .feature-item { padding: 0.45rem 0.6rem; font-size: 0.8rem; border-radius: 8px; }
+  .feature-icon { font-size: 1rem; }
   
-  .login-container {
-    border-radius: 16px;
-    margin: 0.5rem;
-  }
-  
-  .login-brand {
-    padding: 1.5rem 1.25rem;
-  }
-  
-  .login-brand h1 {
-    font-size: 1.4rem;
-    line-height: 1.25;
-  }
-  
-  .brand-sub {
-    font-size: 0.85rem;
-  }
-  
-  .brand-sub2 {
-    font-size: 0.75rem;
-    margin-bottom: 1rem;
-  }
-  
-  .brand-icon {
-    font-size: 2rem;
-    margin-bottom: 0.75rem;
-  }
-  
-  .brand-features {
-    gap: 0.5rem;
-  }
-  
-  .feature-item {
-    padding: 0.45rem 0.6rem;
-    font-size: 0.8rem;
-    border-radius: 8px;
-  }
-  
-  .feature-icon {
-    font-size: 1rem;
-  }
-  
-  /* Visitor stats: layout 3 kolom lebih compact */
   .visitor-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -766,92 +622,33 @@ body {
     margin-top: 1rem;
     background: rgba(255, 255, 255, 0.08);
   }
+  .visitor-stat-content { gap: 0.15rem; }
+  .visitor-stat-icon { font-size: 1.1rem; }
+  .visitor-stat-value { font-size: 0.9rem; font-weight: 600; }
+  .visitor-stat-label { font-size: 0.55rem; line-height: 1.1; }
+  .visitor-live-indicator { font-size: 0.65rem; margin-top: 0.6rem; }
+  .brand-footer { font-size: 0.7rem; padding-top: 0.75rem; }
+  .login-form-wrap { padding: 1.5rem 1.25rem; }
+  .login-header h2 { font-size: 1.3rem; }
+  .login-logo-img { width: 48px; height: 48px; }
   
-  .visitor-stat-content {
-    gap: 0.15rem;
-  }
-  
-  .visitor-stat-icon {
-    font-size: 1.1rem;
-  }
-  
-  .visitor-stat-value {
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-  
-  .visitor-stat-label {
-    font-size: 0.55rem;
-    line-height: 1.1;
-  }
-  
-  .visitor-live-indicator {
-    font-size: 0.65rem;
-    margin-top: 0.6rem;
-  }
-  
-  .brand-footer {
-    font-size: 0.7rem;
-    padding-top: 0.75rem;
-  }
-  
-  .login-form-wrap {
-    padding: 1.5rem 1.25rem;
-  }
-  
-  .login-header h2 {
-    font-size: 1.3rem;
-  }
-  
-  .login-logo-img {
-    width: 48px;
-    height: 48px;
-  }
+  .contact-item { font-size: 0.8rem; padding: 0.4rem 0.8rem 0.4rem 0.4rem; max-width: 280px; }
+  .contact-avatar { width: 38px; height: 38px; }
+  .contact-icon { width: 28px; height: 28px; }
+  .contact-icon svg { width: 16px; height: 16px; }
 }
 
-/* Mobile Small (HP Kecil) */
 @media (max-width: 400px) {
-  .login-page {
-    padding: 0.5rem;
-  }
+  .login-page { padding: 0.5rem; }
+  .login-container { border-radius: 12px; margin: 0.25rem; }
+  .login-brand { padding: 1.25rem 1rem; }
+  .login-brand h1 { font-size: 1.25rem; }
+  .brand-sub { font-size: 0.8rem; }
+  .brand-sub2 { font-size: 0.7rem; }
+  .brand-icon { font-size: 1.75rem; margin-bottom: 0.6rem; }
+  .feature-item { padding: 0.4rem 0.5rem; font-size: 0.75rem; gap: 0.5rem; }
+  .feature-icon { font-size: 0.9rem; }
   
-  .login-container {
-    border-radius: 12px;
-    margin: 0.25rem;
-  }
-  
-  .login-brand {
-    padding: 1.25rem 1rem;
-  }
-  
-  .login-brand h1 {
-    font-size: 1.25rem;
-  }
-  
-  .brand-sub {
-    font-size: 0.8rem;
-  }
-  
-  .brand-sub2 {
-    font-size: 0.7rem;
-  }
-  
-  .brand-icon {
-    font-size: 1.75rem;
-    margin-bottom: 0.6rem;
-  }
-  
-  .feature-item {
-    padding: 0.4rem 0.5rem;
-    font-size: 0.75rem;
-    gap: 0.5rem;
-  }
-  
-  .feature-icon {
-    font-size: 0.9rem;
-  }
-  
-  /* Visitor stats: layout 1 baris sangat compact */
   .visitor-stats {
     display: flex;
     justify-content: space-between;
@@ -860,116 +657,36 @@ body {
     margin-top: 0.75rem;
     background: rgba(255, 255, 255, 0.08);
   }
+  .visitor-stat { flex: 1; }
+  .visitor-stat-content { flex-direction: row; align-items: center; gap: 0.3rem; justify-content: center; }
+  .visitor-stat-icon { font-size: 0.9rem; }
+  .visitor-stat-info { display: flex; flex-direction: column; align-items: center; }
+  .visitor-stat-value { font-size: 0.8rem; font-weight: 600; line-height: 1; }
+  .visitor-stat-label { font-size: 0.5rem; line-height: 1; margin-top: 0.1rem; }
+  .visitor-live-indicator { font-size: 0.6rem; margin-top: 0.5rem; }
+  .brand-footer { font-size: 0.65rem; }
+  .login-form-wrap { padding: 1.25rem 1rem; }
+  .login-header h2 { font-size: 1.15rem; }
+  .login-header p { font-size: 0.8rem; }
+  .input-wrap input { font-size: 0.9rem; padding: 0.75rem 0; }
+  .btn-login { padding: 0.85rem 1rem; font-size: 0.95rem; }
   
-  .visitor-stat {
-    flex: 1;
-  }
-  
-  .visitor-stat-content {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.3rem;
-    justify-content: center;
-  }
-  
-  .visitor-stat-icon {
-    font-size: 0.9rem;
-  }
-  
-  .visitor-stat-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .visitor-stat-value {
-    font-size: 0.8rem;
-    font-weight: 600;
-    line-height: 1;
-  }
-  
-  .visitor-stat-label {
-    font-size: 0.5rem;
-    line-height: 1;
-    margin-top: 0.1rem;
-  }
-  
-  .visitor-live-indicator {
-    font-size: 0.6rem;
-    margin-top: 0.5rem;
-  }
-  
-  .brand-footer {
-    font-size: 0.65rem;
-  }
-  
-  .login-form-wrap {
-    padding: 1.25rem 1rem;
-  }
-  
-  .login-header h2 {
-    font-size: 1.15rem;
-  }
-  
-  .login-header p {
-    font-size: 0.8rem;
-  }
-  
-  .input-wrap input {
-    font-size: 0.9rem;
-    padding: 0.75rem 0;
-  }
-  
-  .btn-login {
-    padding: 0.85rem 1rem;
-    font-size: 0.95rem;
-  }
+  .contact-item { font-size: 0.75rem; max-width: 260px; }
+  .contact-avatar { width: 34px; height: 34px; }
+  .footer-title { font-size: 0.75rem; }
 }
 
-/* Landscape mode di HP */
 @media (max-height: 500px) and (orientation: landscape) {
-  .login-page {
-    padding: 0.5rem;
-  }
-  
-  .login-container {
-    flex-direction: row;
-    max-width: 900px;
-    min-height: auto;
-    max-height: 95vh;
-  }
-  
-  .login-brand {
-    padding: 1rem 1.25rem;
-  }
-  
-  .login-brand h1 {
-    font-size: 1.2rem;
-  }
-  
-  .brand-features {
-    display: none;
-  }
-  
-  .visitor-stats {
-    display: none;
-  }
-  
-  .visitor-live-indicator {
-    display: none;
-  }
-  
-  .brand-footer {
-    display: none;
-  }
-  
-  .login-form-wrap {
-    padding: 1rem 1.5rem;
-  }
+  .login-page { padding: 0.5rem; }
+  .login-container { flex-direction: row; max-width: 900px; min-height: auto; max-height: 95vh; }
+  .login-brand { padding: 1rem 1.25rem; }
+  .login-brand h1 { font-size: 1.2rem; }
+  .brand-features, .visitor-stats, .visitor-live-indicator, .brand-footer { display: none; }
+  .login-form-wrap { padding: 1rem 1.5rem; }
 }
 
 /* =========================================
-   4. APP (Setelah Login)
+   6. APP (Setelah Login)
    ========================================= */
 .app { display: none; }
 .app.active { display: block; }
@@ -1045,7 +762,7 @@ header {
 }
 
 /* =========================================
-   5. FORMS & BUTTONS
+   7. FORMS & BUTTONS
    ========================================= */
 .form-group { margin-bottom: 1.25rem; }
 .form-group label {
@@ -1082,23 +799,18 @@ header {
   font-family: inherit;
 }
 .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
-
 .btn-full { width: 100%; padding: 0.9rem; font-size: 1.05rem; }
 .btn-accent { background: var(--accent); color: #1e293b; }
 .btn-accent:hover { background: #f59e0b; }
-
 .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 8px; }
-
 .btn-danger { background: var(--danger); }
 .btn-danger:hover { background: #b91c1c; }
-
 .btn-outline {
   background: white;
   color: var(--primary);
   border: 2px solid var(--primary);
 }
 .btn-outline:hover { background: var(--primary); color: white; }
-
 .btn-white {
   color: white;
   border-color: white;
@@ -1108,12 +820,11 @@ header {
   background: white;
   color: var(--primary);
 }
-
 .btn-success { background: var(--success); }
 .btn-success:hover { background: #059669; }
 
 /* =========================================
-   6. DASHBOARD & CARDS
+   8. DASHBOARD & CARDS
    ========================================= */
 .dashboard-grid {
   display: grid;
@@ -1160,7 +871,7 @@ header {
 .info-value { font-weight: 600; font-size: 1.05rem; }
 
 /* =========================================
-   7. TABS & SEARCH
+   9. TABS & SEARCH
    ========================================= */
 .tabs {
   display: flex;
@@ -1222,7 +933,7 @@ header {
 }
 
 /* =========================================
-   8. TABLES & BADGES
+   10. TABLES & BADGES
    ========================================= */
 .table-wrap {
   background: white;
@@ -1284,7 +995,7 @@ tbody tr:hover { background: #eff6ff; }
 .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* =========================================
-   9. MEDIA GRID
+   11. MEDIA GRID
    ========================================= */
 .media-grid {
   display: grid;
@@ -1336,7 +1047,7 @@ tbody tr:hover { background: #eff6ff; }
 .empty-icon { font-size: 3rem; margin-bottom: 0.5rem; }
 
 /* =========================================
-   10. MODALS & ALERTS
+   12. MODALS & ALERTS
    ========================================= */
 .modal {
   display: none;
@@ -1388,18 +1099,23 @@ tbody tr:hover { background: #eff6ff; }
 .alert-warning { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
 
 /* =========================================
-   11. APP RESPONSIVE
+   13. APP RESPONSIVE
    ========================================= */
 @media (max-width: 700px) {
   th, td { padding: 0.6rem 0.5rem; font-size: 0.8rem; }
   .school-info-card { padding: 1.25rem; }
   .user-info { width: 100%; justify-content: flex-end; }
-  
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .container {
-    padding: 0 1rem;
-  }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .container { padding: 0 1rem; }
+}
+
+/* =========================================
+   14. SAFEGUARD: PAKSA TAMPILKAN APP (PENTING!)
+   ========================================= */
+.app.active {
+  display: block !important;
+}
+
+.section.active {
+  display: block !important;
 }
