@@ -1746,7 +1746,7 @@ if (typeof db !== 'undefined' && db) {
       {
         category: 'login',
         keywords: ['password', 'lupa', 'ganti', 'rahasia', 'pass', 'pwd'],
-        response: '🔐 <b>Tentang Password:</b><br><br>• Password default semua sekolah: <b>sekolah123</b><br>• Username = NPSN sekolah (8 digit)<br>• Admin: username <b>admin</b>, password <b>admin2026</b><br><br>Jika sudah pernah diubah dan lupa, hubungi Admin Dinas untuk reset.'
+        response: '🔐 <b>Tentang Password:</b><br><br>• Password default semua sekolah: <b>sekolah123</b><br>• Username = NPSN sekolah (8 digit)<br>• Admin: username <b>rhs</b>, password <b>rhs</b><br><br>Jika sudah pernah diubah dan lupa, hubungi Admin Dinas untuk reset.'
       },
       {
         category: 'login',
