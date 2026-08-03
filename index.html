@@ -320,56 +320,54 @@
 </div>
 
 <script type="module" src="script.js"></script>
-  <!-- ============ FLOATING CHAT WIDGET ============ -->
-<div class="chat-widget">
-  <!-- Chat Box (Tersembunyi Awalnya) -->
-  <div class="chat-box" id="chatBox">
-    <div class="chat-header">
-      <div class="chat-header-info">
-        <div class="chat-title">💬 Bantuan & Dukungan</div>
-        <div class="chat-subtitle">Biasanya membalas dalam beberapa menit</div>
-      </div>
-      <button class="chat-close" onclick="toggleChat()">✕</button>
-    </div>
-    
-    <div class="chat-body">
-      <div class="chat-welcome">
-        <div class="chat-avatar-admin">🏫</div>
-        <div class="chat-bubble">
-          Halo! 👋<br>
-          Ada kendala login atau butuh bantuan terkait aplikasi? Silakan pilih admin di bawah untuk chat langsung via WhatsApp.
+  
+ <!-- ============ INTERACTIVE CHATBOT WIDGET ============ -->
+<div class="chatbot-widget">
+  <!-- Tombol Toggle -->
+  <button class="chatbot-toggle" onclick="toggleChatbot()" aria-label="Buka Bantuan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+    <span class="chatbot-badge">1</span>
+  </button>
+
+  <!-- Jendela Chat -->
+  <div class="chatbot-window" id="chatbotWindow">
+    <!-- Header -->
+    <div class="chatbot-header">
+      <div class="chatbot-header-info">
+        <div class="chatbot-avatar">🤖</div>
+        <div>
+          <div class="chatbot-title">Asisten Virtual</div>
+          <div class="chatbot-status"><span class="status-dot"></span> Online</div>
         </div>
       </div>
-      
-      <div class="chat-options">
-        <a href="https://wa.me/6281237932540?text=Halo%20Admin%201,%20saya%20butuh%20bantuan%20terkait%20Sistem%20Informasi%20Sekolah." target="_blank" class="chat-option">
-          <img src="admin1.png" class="chat-avatar" onerror="this.src='https://ui-avatars.com/api/?name=Admin+1&background=25D366&color=fff'">
-          <div class="chat-option-info">
-            <div class="chat-option-name">Admin 1 (Teknis)</div>
-            <div class="chat-option-status"><span class="status-dot"></span> Online</div>
-          </div>
-          <div class="chat-wa-icon">💬</div>
-        </a>
-        
-        <a href="https://wa.me/6285182110144?text=Halo%20Admin%202,%20saya%20butuh%20bantuan%20terkait%20Sistem%20Informasi%20Sekolah." target="_blank" class="chat-option">
-          <img src="admin2.png" class="chat-avatar" onerror="this.src='https://ui-avatars.com/api/?name=Admin+2&background=25D366&color=fff'">
-          <div class="chat-option-info">
-            <div class="chat-option-name">Admin 2 (Umum)</div>
-            <div class="chat-option-status"><span class="status-dot"></span> Online</div>
-          </div>
-          <div class="chat-wa-icon">💬</div>
-        </a>
-      </div>
+      <button class="chatbot-close" onclick="toggleChatbot()"></button>
+    </div>
+
+    <!-- Area Pesan -->
+    <div class="chatbot-messages" id="chatbotMessages">
+      <!-- Pesan akan muncul di sini via JS -->
+    </div>
+
+    <!-- Area Input -->
+    <div class="chatbot-input-area">
+      <input type="text" id="chatbotInput" placeholder="Tulis pertanyaan Anda..." onkeypress="handleChatKeyPress(event)">
+      <button class="chatbot-send" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Quick Replies (Opsi Cepat) -->
+    <div class="chatbot-quick-replies" id="quickReplies">
+      <button onclick="sendQuickReply('Lupa password')">Lupa password</button>
+      <button onclick="sendQuickReply('NPSN tidak ditemukan')">NPSN error</button>
+      <button onclick="sendQuickReply('Hubungi admin')">Hubungi admin</button>
     </div>
   </div>
-
-  <!-- Tombol Chat Melayang -->
-  <button class="chat-button" onclick="toggleChat()" aria-label="Buka Chat Bantuan">
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
-      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/>
-    </svg>
-    <span class="chat-badge">1</span>
-  </button>
 </div>
 </body>
 </html>
