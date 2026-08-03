@@ -1718,28 +1718,142 @@ if (typeof db !== 'undefined' && db) {
     setTimeout(startVisitorTracking, 800);
   }
 }
-// ============ CHAT WIDGET TOGGLE ============
-window.toggleChat = function() {
-  const chatBox = document.getElementById('chatBox');
-  chatBox.classList.toggle('active');
-  
-  // Hilangkan badge notifikasi setelah dibuka pertama kali
-  const badge = document.querySelector('.chat-badge');
-  if (badge && chatBox.classList.contains('active')) {
-    setTimeout(() => {
-      badge.style.display = 'none';
-    }, 500);
-  }
-};
 
-// Opsional: Auto-open chat setelah 10 detik jika user diam di halaman login
-setTimeout(() => {
-  const loginPage = document.getElementById('loginPage');
-  if (loginPage && loginPage.style.display !== 'none') {
-    const chatBox = document.getElementById('chatBox');
-    if (chatBox && !chatBox.classList.contains('active')) {
-      // Hanya tampilkan sedikit animasi, tidak perlu auto-open penuh agar tidak mengganggu
-      // toggleChat(); 
+// ============ CHATBOT LOGIC ============
+let isChatOpen = false;
+let chatInitialized = false;
+
+const chatbotWindow = document.getElementById('chatbotWindow');
+const chatbotMessages = document.getElementById('chatbotMessages');
+const chatbotInput = document.getElementById('chatbotInput');
+const quickReplies = document.getElementById('quickReplies');
+
+// Database Pengetahuan Chatbot
+const botKnowledge = [
+  {
+    keywords: ['password', 'lupa', 'ganti', 'rahasia'],
+    response: 'Password default untuk semua sekolah adalah <b>sekolah123</b>.<br><br>Jika Anda sudah pernah mengubahnya dan lupa, silakan hubungi Admin Dinas untuk direset.'
+  },
+  {
+    keywords: ['npsn', 'username', 'tidak ditemukan', 'error login', 'salah'],
+    response: 'Pastikan Anda memasukkan <b>8 digit NPSN</b> sekolah dengan benar tanpa spasi.<br><br>Jika NPSN Anda tidak terdaftar di sistem, kemungkinan data sekolah belum diinput. Silakan hubungi Admin.'
+  },
+  {
+    keywords: ['admin', 'kontak', 'hubungi', 'telepon', 'wa', 'whatsapp'],
+    response: 'Anda bisa menghubungi Admin Dinas Pendidikan melalui:<br>📱 <b>Admin 1:</b> 0812-3793-2540<br>📱 <b>Admin 2:</b> 0851-8211-0144<br><br>Atau lihat tombol kontak di bagian bawah halaman login.'
+  },
+  {
+    keywords: ['halo', 'hai', 'hi', 'hello', 'pagi', 'siang', 'sore'],
+    response: 'Halo! 👋 Saya Asisten Virtual. Ada yang bisa saya bantu terkait login atau aplikasi ini?'
+  },
+  {
+    keywords: ['terima kasih', 'makasih', 'thanks'],
+    response: 'Sama-sama! 😊 Senang bisa membantu. Jika ada pertanyaan lain, silakan tanyakan lagi.'
+  }
+];
+
+const defaultResponse = 'Maaf, saya tidak mengerti pertanyaan Anda. 🤔<br><br>Silakan pilih opsi di bawah atau hubungi Admin Dinas langsung melalui tombol kontak di halaman login.';
+
+function toggleChatbot() {
+  isChatOpen = !isChatOpen;
+  chatbotWindow.classList.toggle('active', isChatOpen);
+  
+  // Hilangkan badge
+  const badge = document.querySelector('.chatbot-badge');
+  if (badge && isChatOpen) {
+    setTimeout(() => badge.style.display = 'none', 500);
+  }
+
+  // Inisialisasi pesan pertama kali
+  if (isChatOpen && !chatInitialized) {
+    setTimeout(() => {
+      addBotMessage('Halo! 👋 Saya Asisten Virtual Dinas Pendidikan Kabupaten Ende.');
+      setTimeout(() => {
+        addBotMessage('Ada kendala login atau butuh bantuan? Silakan ketik pertanyaan Anda atau pilih opsi di bawah.');
+      }, 800);
+    }, 300);
+    chatInitialized = true;
+  }
+  
+  if (isChatOpen) {
+    setTimeout(() => chatbotInput.focus(), 300);
+  }
+}
+
+function handleChatKeyPress(event) {
+  if (event.key === 'Enter') {
+    sendMessage();
+  }
+}
+
+function sendQuickReply(text) {
+  chatbotInput.value = text;
+  sendMessage();
+}
+
+function sendMessage() {
+  const text = chatbotInput.value.trim();
+  if (!text) return;
+
+  // Tambah pesan user
+  addUserMessage(text);
+  chatbotInput.value = '';
+  
+  // Sembunyikan quick replies setelah user mengetik
+  if (quickReplies) quickReplies.style.display = 'none';
+
+  // Tampilkan typing indicator
+  showTypingIndicator();
+
+  // Proses balasan bot dengan delay
+  setTimeout(() => {
+    removeTypingIndicator();
+    const response = getBotResponse(text.toLowerCase());
+    addBotMessage(response);
+  }, 1000 + Math.random() * 1000); // Delay 1-2 detik agar terlihat natural
+}
+
+function addUserMessage(text) {
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'message user';
+  msgDiv.textContent = text;
+  chatbotMessages.appendChild(msgDiv);
+  scrollToBottom();
+}
+
+function addBotMessage(html) {
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'message bot';
+  msgDiv.innerHTML = html;
+  chatbotMessages.appendChild(msgDiv);
+  scrollToBottom();
+}
+
+function showTypingIndicator() {
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'typing-indicator';
+  typingDiv.id = 'typingIndicator';
+  typingDiv.innerHTML = '<span></span><span></span><span></span>';
+  chatbotMessages.appendChild(typingDiv);
+  scrollToBottom();
+}
+
+function removeTypingIndicator() {
+  const typing = document.getElementById('typingIndicator');
+  if (typing) typing.remove();
+}
+
+function scrollToBottom() {
+  chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+}
+
+function getBotResponse(input) {
+  for (let item of botKnowledge) {
+    for (let keyword of item.keywords) {
+      if (input.includes(keyword)) {
+        return item.response;
+      }
     }
   }
-}, 10000);
+  return defaultResponse;
+}
