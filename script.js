@@ -1723,11 +1723,6 @@ if (typeof db !== 'undefined' && db) {
 let isChatOpen = false;
 let chatInitialized = false;
 
-const chatbotWindow = document.getElementById('chatbotWindow');
-const chatbotMessages = document.getElementById('chatbotMessages');
-const chatbotInput = document.getElementById('chatbotInput');
-const quickReplies = document.getElementById('quickReplies');
-
 // Database Pengetahuan Chatbot
 const botKnowledge = [
   {
@@ -1754,9 +1749,13 @@ const botKnowledge = [
 
 const defaultResponse = 'Maaf, saya tidak mengerti pertanyaan Anda. 🤔<br><br>Silakan pilih opsi di bawah atau hubungi Admin Dinas langsung melalui tombol kontak di halaman login.';
 
-function toggleChatbot() {
+// ✅ PERBAIKAN: Semua fungsi dilekatkan ke window agar bisa dipanggil dari HTML
+window.toggleChatbot = function() {
   isChatOpen = !isChatOpen;
-  chatbotWindow.classList.toggle('active', isChatOpen);
+  const chatbotWindow = document.getElementById('chatbotWindow');
+  if (chatbotWindow) {
+    chatbotWindow.classList.toggle('active', isChatOpen);
+  }
   
   // Hilangkan badge
   const badge = document.querySelector('.chatbot-badge');
@@ -1776,22 +1775,34 @@ function toggleChatbot() {
   }
   
   if (isChatOpen) {
-    setTimeout(() => chatbotInput.focus(), 300);
+    setTimeout(() => {
+      const chatbotInput = document.getElementById('chatbotInput');
+      if (chatbotInput) chatbotInput.focus();
+    }, 300);
   }
-}
+};
 
-function handleChatKeyPress(event) {
+window.handleChatKeyPress = function(event) {
   if (event.key === 'Enter') {
-    sendMessage();
+    window.sendMessage();
   }
-}
+};
 
-function sendQuickReply(text) {
-  chatbotInput.value = text;
-  sendMessage();
-}
+window.sendQuickReply = function(text) {
+  const chatbotInput = document.getElementById('chatbotInput');
+  if (chatbotInput) {
+    chatbotInput.value = text;
+    window.sendMessage();
+  }
+};
 
-function sendMessage() {
+window.sendMessage = function() {
+  const chatbotInput = document.getElementById('chatbotInput');
+  const chatbotMessages = document.getElementById('chatbotMessages');
+  const quickReplies = document.getElementById('quickReplies');
+  
+  if (!chatbotInput || !chatbotMessages) return;
+  
   const text = chatbotInput.value.trim();
   if (!text) return;
 
@@ -1811,9 +1822,12 @@ function sendMessage() {
     const response = getBotResponse(text.toLowerCase());
     addBotMessage(response);
   }, 1000 + Math.random() * 1000); // Delay 1-2 detik agar terlihat natural
-}
+};
 
 function addUserMessage(text) {
+  const chatbotMessages = document.getElementById('chatbotMessages');
+  if (!chatbotMessages) return;
+  
   const msgDiv = document.createElement('div');
   msgDiv.className = 'message user';
   msgDiv.textContent = text;
@@ -1822,6 +1836,9 @@ function addUserMessage(text) {
 }
 
 function addBotMessage(html) {
+  const chatbotMessages = document.getElementById('chatbotMessages');
+  if (!chatbotMessages) return;
+  
   const msgDiv = document.createElement('div');
   msgDiv.className = 'message bot';
   msgDiv.innerHTML = html;
@@ -1830,6 +1847,9 @@ function addBotMessage(html) {
 }
 
 function showTypingIndicator() {
+  const chatbotMessages = document.getElementById('chatbotMessages');
+  if (!chatbotMessages) return;
+  
   const typingDiv = document.createElement('div');
   typingDiv.className = 'typing-indicator';
   typingDiv.id = 'typingIndicator';
@@ -1844,7 +1864,10 @@ function removeTypingIndicator() {
 }
 
 function scrollToBottom() {
-  chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  const chatbotMessages = document.getElementById('chatbotMessages');
+  if (chatbotMessages) {
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
 }
 
 function getBotResponse(input) {
