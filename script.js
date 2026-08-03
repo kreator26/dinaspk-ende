@@ -1718,3 +1718,28 @@ if (typeof db !== 'undefined' && db) {
     setTimeout(startVisitorTracking, 800);
   }
 }
+// ============ CHAT WIDGET TOGGLE ============
+window.toggleChat = function() {
+  const chatBox = document.getElementById('chatBox');
+  chatBox.classList.toggle('active');
+  
+  // Hilangkan badge notifikasi setelah dibuka pertama kali
+  const badge = document.querySelector('.chat-badge');
+  if (badge && chatBox.classList.contains('active')) {
+    setTimeout(() => {
+      badge.style.display = 'none';
+    }, 500);
+  }
+};
+
+// Opsional: Auto-open chat setelah 10 detik jika user diam di halaman login
+setTimeout(() => {
+  const loginPage = document.getElementById('loginPage');
+  if (loginPage && loginPage.style.display !== 'none') {
+    const chatBox = document.getElementById('chatBox');
+    if (chatBox && !chatBox.classList.contains('active')) {
+      // Hanya tampilkan sedikit animasi, tidak perlu auto-open penuh agar tidak mengganggu
+      // toggleChat(); 
+    }
+  }
+}, 10000);
