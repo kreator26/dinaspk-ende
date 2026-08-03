@@ -1719,11 +1719,10 @@ if (typeof db !== 'undefined' && db) {
   }
 }
 
-// ============ CHATBOT WIDGET ============
+// ============ CHATBOT WIDGET (ENHANCED VERSION) ============
 (function() {
   'use strict';
   
-  // Tunggu DOM siap
   function initChatbot() {
     const chatbotWindow = document.getElementById('chatbotWindow');
     const chatbotMessages = document.getElementById('chatbotMessages');
@@ -1731,56 +1730,132 @@ if (typeof db !== 'undefined' && db) {
     const quickReplies = document.getElementById('quickReplies');
     
     if (!chatbotWindow || !chatbotMessages || !chatbotInput) {
-      console.warn('⚠️ Chatbot elements not found');
+      console.warn('️ Chatbot elements not found');
       return;
     }
 
     let isChatOpen = false;
     let chatInitialized = false;
+    let lastTopic = null; // Untuk konteks percakapan
 
-    // Database Pengetahuan Chatbot
+    // ============================================
+    // DATABASE PENGETAHUAN LENGKAP
+    // ============================================
     const botKnowledge = [
+      // === LOGIN & PASSWORD ===
       {
-        keywords: ['password', 'lupa', 'ganti', 'rahasia'],
-        response: 'Password default untuk semua sekolah adalah <b>sekolah123</b>.<br><br>Jika Anda sudah pernah mengubahnya dan lupa, silakan hubungi Admin Dinas untuk direset.'
+        category: 'login',
+        keywords: ['password', 'lupa', 'ganti', 'rahasia', 'pass', 'pwd'],
+        response: '🔐 <b>Tentang Password:</b><br><br>• Password default semua sekolah: <b>sekolah123</b><br>• Username = NPSN sekolah (8 digit)<br>• Admin: username <b>admin</b>, password <b>admin2026</b><br><br>Jika sudah pernah diubah dan lupa, hubungi Admin Dinas untuk reset.'
       },
       {
-        keywords: ['npsn', 'username', 'tidak ditemukan', 'error login', 'salah'],
-        response: 'Pastikan Anda memasukkan <b>8 digit NPSN</b> sekolah dengan benar tanpa spasi.<br><br>Jika NPSN Anda tidak terdaftar di sistem, kemungkinan data sekolah belum diinput. Silakan hubungi Admin.'
+        category: 'login',
+        keywords: ['npsn', 'username', 'tidak ditemukan', 'error login', 'salah', 'gagal login'],
+        response: '🔍 <b>Troubleshooting Login:</b><br><br>1. Pastikan NPSN 8 digit tanpa spasi<br>2. Cek password default: sekolah123<br>3. Pastikan koneksi internet stabil<br>4. Coba browser lain (Chrome/Firefox)<br><br>Jika masih gagal, NPSN Anda mungkin belum terdaftar. Hubungi Admin.'
       },
       {
-        keywords: ['admin', 'kontak', 'hubungi', 'telepon', 'wa', 'whatsapp'],
-        response: 'Anda bisa menghubungi Admin Dinas Pendidikan melalui:<br>📱 <b>Admin 1:</b> 0812-3793-2540<br>📱 <b>Admin 2:</b> 0851-8211-0144<br><br>Atau lihat tombol kontak di bagian bawah halaman login.'
+        category: 'login',
+        keywords: ['akun', 'register', 'daftar', 'baru', 'tambah sekolah'],
+        response: '📝 <b>Pendaftaran Akun:</b><br><br>Akun sekolah dibuat oleh Admin Dinas. Jika sekolah Anda belum punya akun:<br>• Hubungi Admin dengan menyertakan NPSN<br>• Admin akan mengaktivasi akun dalam 1x24 jam<br>• Password awal: sekolah123'
+      },
+
+      // === MEDIA & UPLOAD ===
+      {
+        category: 'media',
+        keywords: ['upload', 'unggah', 'kirim', 'foto', 'video', 'dokumen', 'media'],
+        response: '📤 <b>Cara Upload Media:</b><br><br>1. Login dengan NPSN & password<br>2. Pilih tab: Foto/Video/Dokumen<br>3. Klik "+ Tambah"<br>4. Pilih judul dari daftar atau ketik manual<br>5. Masukkan URL atau upload file (maks 300KB untuk foto)<br>6. Klik "Simpan"<br><br>💡 Untuk video, gunakan link YouTube agar hemat kuota.'
       },
       {
-        keywords: ['halo', 'hai', 'hi', 'hello', 'pagi', 'siang', 'sore'],
-        response: 'Halo! 👋 Saya Asisten Virtual. Ada yang bisa saya bantu terkait login atau aplikasi ini?'
+        category: 'media',
+        keywords: ['format', 'tipe', 'jenis', 'file', 'ukuran', 'size', 'mb', 'kb'],
+        response: '📋 <b>Format File yang Didukung:</b><br><br>🖼️ <b>Foto:</b> JPG, PNG (maks 300KB)<br>🎬 <b>Video:</b> Link YouTube (embed)<br>📄 <b>Dokumen:</b> PDF, DOC via Google Drive link<br><br>💡 Tips: Kompres foto dulu di tinypng.com sebelum upload.'
       },
       {
-        keywords: ['terima kasih', 'makasih', 'thanks'],
-        response: 'Sama-sama!  Senang bisa membantu. Jika ada pertanyaan lain, silakan tanyakan lagi.'
+        category: 'media',
+        keywords: ['hapus', 'delete', 'hilang', 'edit', 'ubah'],
+        response: '️ <b>Manajemen Media:</b><br><br>• <b>Hapus:</b> Klik tombol "Hapus" di card media<br>• <b>Edit:</b> Hapus lalu upload ulang (belum ada fitur edit)<br>• <b>Restore:</b> Tidak bisa, pastikan sebelum hapus<br><br>⚠️ Hati-hati, hapus bersifat permanen!'
+      },
+
+      // === FITUR APLIKASI ===
+      {
+        category: 'fitur',
+        keywords: ['fitur', 'bisa apa', 'fungsi', 'kegunaan', 'manfaat'],
+        response: '✨ <b>Fitur Aplikasi:</b><br><br> <b>Untuk Admin:</b><br>• Monitoring status pengiriman sekolah<br>• Lihat leaderboard sekolah teraktif<br>• Kelola data sekolah & password<br><br>📱 <b>Untuk Sekolah:</b><br>• Upload foto kegiatan<br>• Share video pembelajaran<br>• Kelola dokumen digital<br>• Lihat statistik media sendiri'
+      },
+      {
+        category: 'fitur',
+        keywords: ['leaderboard', 'peringkat', 'teraktif', 'top', 'ranking'],
+        response: '🏆 <b>Leaderboard Sekolah:</b><br><br>Peringkat berdasarkan total media yang dikirim:<br>🥇 Emas: Terbanyak<br>🥈 Perak: Kedua<br>🥉 Perunggu: Ketiga<br><br>Update real-time setiap ada upload baru. Ayo sekolah Anda jadi yang teraktif! 💪'
+      },
+
+      // === TEKNIS ===
+      {
+        category: 'teknis',
+        keywords: ['lambat', 'lemot', 'error', 'bug', 'masalah', 'rusak', 'tidak bisa'],
+        response: ' <b>Troubleshooting Teknis:</b><br><br>1. <b>Refresh halaman</b> (Ctrl+Shift+R)<br>2. <b>Clear cache</b> browser<br>3. <b>Coba browser lain</b> (Chrome recommended)<br>4. <b>Cek koneksi internet</b><br>5. <b>Disable adblocker</b><br><br>Jika masih bermasalah, screenshot error dan kirim ke Admin.'
+      },
+      {
+        category: 'teknis',
+        keywords: ['browser', 'chrome', 'firefox', 'safari', 'hp', 'mobile'],
+        response: '📱 <b>Kompatibilitas Browser:</b><br><br>✅ <b>Recommended:</b> Chrome, Firefox, Edge<br>⚠️ <b>Limited:</b> Safari, Opera<br> <b>Tidak support:</b> IE (Internet Explorer)<br><br>Aplikasi responsif untuk HP & desktop. Untuk upload, gunakan PC/laptop lebih mudah.'
+      },
+
+      // === KONTAK & SUPPORT ===
+      {
+        category: 'kontak',
+        keywords: ['admin', 'kontak', 'hubungi', 'telepon', 'wa', 'whatsapp', 'call'],
+        response: ' <b>Kontak Admin Dinas:</b><br><br>👤 <b>Admin 1 (Teknis):</b><br> 0812-3793-2540<br><br> <b>Admin 2 (Umum):</b><br>📱 0851-8211-0144<br><br>⏰ Jam operasional: Senin-Jumat, 08:00-16:00 WITA<br>💬 Klik tombol kontak di bawah halaman login untuk chat langsung.'
+      },
+      {
+        category: 'kontak',
+        keywords: ['jam', 'operasional', 'buka', 'tutup', 'kapan', 'waktu'],
+        response: ' <b>Jam Operasional Support:</b><br><br> Senin - Jumat<br>🕗 08:00 - 16:00 WITA<br><br>Di luar jam operasional, silakan tinggalkan pesan via WhatsApp. Admin akan membalas di hari kerja berikutnya.'
+      },
+
+      // === UCAPAN & GENERAL ===
+      {
+        category: 'general',
+        keywords: ['halo', 'hai', 'hi', 'hello', 'pagi', 'siang', 'sore', 'malam', 'selamat'],
+        response: 'Halo! 👋 Saya Asisten Virtual Dinas Pendidikan Kabupaten Ende.<br><br>Saya bisa membantu Anda dengan:<br>• 🔐 Masalah login & password<br>• 📤 Cara upload media<br>• 🔧 Troubleshooting teknis<br>• 📞 Info kontak admin<br><br>Silakan ketik pertanyaan atau pilih menu di bawah!'
+      },
+      {
+        category: 'general',
+        keywords: ['terima kasih', 'makasih', 'thanks', 'thank you', 'nuhun'],
+        response: 'Sama-sama! 😊 Senang bisa membantu.<br><br>Jika ada pertanyaan lain, jangan ragu untuk bertanya lagi. Selamat beraktivitas! 🌟'
+      },
+      {
+        category: 'general',
+        keywords: ['siapa kamu', 'kamu siapa', 'anda siapa', 'bot', 'robot', 'ai'],
+        response: '🤖 <b>Tentang Saya:</b><br><br>Saya adalah Asisten Virtual otomatis untuk Sistem Informasi Sekolah Kabupaten Ende.<br><br>Saya siap membantu 24/7 untuk pertanyaan umum. Untuk masalah kompleks, saya akan mengarahkan Anda ke Admin manusia. '
+      },
+      {
+        category: 'general',
+        keywords: ['menu', 'bantuan', 'help', 'topik', 'pilihan'],
+        response: ' <b>Menu Bantuan:</b><br><br>Ketik kata kunci atau pilih topik:<br><br>🔐 <b>Login:</b> "password", "NPSN", "akun"<br>📤 <b>Media:</b> "upload", "foto", "video"<br>🔧 <b>Teknis:</b> "error", "lambat", "browser"<br>📞 <b>Kontak:</b> "admin", "telepon"<br><br>Atau ketik pertanyaan Anda secara natural!'
       }
     ];
 
-    const defaultResponse = 'Maaf, saya tidak mengerti pertanyaan Anda. 🤔<br><br>Silakan pilih opsi di bawah atau hubungi Admin Dinas langsung melalui tombol kontak di halaman login.';
+    const defaultResponse = 'Maaf, saya tidak mengerti pertanyaan Anda. 🤔<br><br>Coba gunakan kata kunci seperti:<br>• "password" atau "lupa password"<br>• "cara upload"<br>• "hubungi admin"<br><br>Atau pilih menu di bawah untuk bantuan lebih lanjut.';
 
-    // Fungsi Toggle Chat
+    // ============================================
+    // FUNGSI UTAMA
+    // ============================================
+    
     window.toggleChatbot = function() {
       isChatOpen = !isChatOpen;
       chatbotWindow.classList.toggle('active', isChatOpen);
       
-      // Hilangkan badge
       const badge = document.querySelector('.chatbot-badge');
       if (badge && isChatOpen) {
         setTimeout(() => badge.style.display = 'none', 500);
       }
 
-      // Inisialisasi pesan pertama kali
       if (isChatOpen && !chatInitialized) {
         setTimeout(() => {
           addBotMessage('Halo! 👋 Saya Asisten Virtual Dinas Pendidikan Kabupaten Ende.');
           setTimeout(() => {
-            addBotMessage('Ada kendala login atau butuh bantuan? Silakan ketik pertanyaan Anda atau pilih opsi di bawah.');
+            addBotMessage('Saya bisa membantu Anda dengan login, upload media, troubleshooting, dan lainnya. Silakan ketik pertanyaan atau pilih menu di bawah!');
+            showMainMenu();
           }, 800);
         }, 300);
         chatInitialized = true;
@@ -1791,7 +1866,6 @@ if (typeof db !== 'undefined' && db) {
       }
     };
 
-    // Fungsi Kirim Pesan
     window.sendMessage = function() {
       const text = chatbotInput.value.trim();
       if (!text) return;
@@ -1807,23 +1881,42 @@ if (typeof db !== 'undefined' && db) {
         removeTypingIndicator();
         const response = getBotResponse(text.toLowerCase());
         addBotMessage(response);
-      }, 1000 + Math.random() * 1000);
+        
+        // Tampilkan quick replies lagi setelah bot menjawab
+        setTimeout(() => {
+          if (quickReplies) quickReplies.style.display = 'flex';
+        }, 500);
+      }, 800 + Math.random() * 700);
     };
 
-    // Fungsi Quick Reply
     window.sendQuickReply = function(text) {
       chatbotInput.value = text;
       window.sendMessage();
     };
 
-    // Fungsi Handle Enter Key
     window.handleChatKeyPress = function(event) {
       if (event.key === 'Enter') {
         window.sendMessage();
       }
     };
 
-    // Helper Functions
+    // ============================================
+    // FUNGSI BANTUAN
+    // ============================================
+
+    function showMainMenu() {
+      const menuHTML = `
+        <div style="margin-top: 10px;">
+          <b>📌 Topik Populer:</b><br>
+          • 🔐 Lupa password<br>
+          • 📤 Cara upload media<br>
+          • 🔧 Aplikasi error<br>
+          • 📞 Hubungi admin
+        </div>
+      `;
+      addBotMessage(menuHTML);
+    }
+
     function addUserMessage(text) {
       const msgDiv = document.createElement('div');
       msgDiv.className = 'message user';
@@ -1858,18 +1951,47 @@ if (typeof db !== 'undefined' && db) {
       chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
     }
 
+    // ============================================
+    // SISTEM PENCARIAN PINTAR
+    // ============================================
+    
     function getBotResponse(input) {
+      let bestMatch = null;
+      let highestScore = 0;
+
+      // Cari kecocokan berdasarkan jumlah keyword yang match
       for (let item of botKnowledge) {
+        let matchCount = 0;
+        
         for (let keyword of item.keywords) {
           if (input.includes(keyword)) {
-            return item.response;
+            matchCount++;
+            // Bonus score untuk keyword yang lebih panjang (lebih spesifik)
+            const score = keyword.length;
+            if (score > highestScore) {
+              highestScore = score;
+              bestMatch = item;
+            }
           }
         }
+        
+        // Jika multiple keywords match, prioritaskan
+        if (matchCount >= 2) {
+          return item.response;
+        }
       }
+
+      // Jika ada match, return
+      if (bestMatch) {
+        lastTopic = bestMatch.category;
+        return bestMatch.response;
+      }
+
+      // Fallback: tawarkan menu
       return defaultResponse;
     }
 
-    console.log('✅ Chatbot initialized successfully');
+    console.log('✅ Enhanced Chatbot initialized successfully');
   }
 
   // Jalankan setelah DOM ready
