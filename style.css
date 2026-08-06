@@ -1433,3 +1433,43 @@ tbody tr:hover { background: #eff6ff; }
     height: 55px;
   }
 }
+
+/* ============ PREVIEW MODAL ENHANCEMENT ============ */
+#previewModal .modal-content {
+  max-width: 900px;
+  padding: 0;
+  overflow: hidden;
+}
+
+#previewContent img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#previewContent h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* Thumbnail hover effect */
+.media-thumb {
+  transition: transform 0.2s ease;
+}
+
+.media-thumb:hover {
+  transform: scale(1.02);
+}
+
+.media-thumb:hover img {
+  filter: brightness(1.1);
+}
+
+/* Loading state untuk foto */
+.media-thumb img {
+  transition: opacity 0.3s ease;
+}
+
+.media-thumb img[src*="placeholder"] {
+  opacity: 0.6;
+}
