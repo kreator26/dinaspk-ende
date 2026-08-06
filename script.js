@@ -1640,7 +1640,19 @@ window.previewMedia = async function(type, id) {
 };
 
 window.closePreview = function() {
-  document.getElementById('previewModal').classList.remove('active');
+  const previewModal = document.getElementById('previewModal');
+  const previewContent = document.getElementById('previewContent');
+  
+  if (previewModal) {
+    previewModal.classList.remove('active');
+  }
+  
+  // Clear content setelah animasi selesai
+  setTimeout(() => {
+    if (previewContent) {
+      previewContent.innerHTML = '';
+    }
+  }, 300);
 };
 
 // ============ FILTER EVENTS ============
