@@ -1325,27 +1325,137 @@ window.switchMediaTab = function(tab, btn) {
   document.getElementById('media-' + tab).classList.add('active');
 };
 
+// ============ RENDER FOTO (DIPERBAIKI) ============
 window.renderFoto = function(items) {
   const grid = document.getElementById('gridFoto');
-  if (!items.length) {
+  if (!grid) return;
+  
+  if (!items || items.length === 0) {
     grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📷</div>Belum ada foto</div>';
     return;
   }
+  
   grid.innerHTML = items.map(i => `
     <div class="media-card">
-      <div class="media-thumb" onclick="window.previewMedia('foto',${i.id})">
-        <img src="${i.url}" alt="${escapeHtml(i.title)}" onerror="this.src='https://via.placeholder.com/400x250?text=Foto'">
+      <div class="media-thumb" onclick="window.previewMedia('foto',${i.id})" style="cursor:pointer;">
+        <img src="${i.url}" alt="${escapeHtml(i.title)}" 
+             onerror="this.src='https://via.placeholder.com/400x250?text=Foto+Tidak+Ditemukan'; this.style.objectFit='contain';">
       </div>
       <div class="media-body">
         <div class="media-title">${escapeHtml(i.title)}</div>
         <div class="media-desc">${escapeHtml(i.desc || '')}</div>
       </div>
       <div class="media-actions">
-        <button class="btn btn-sm btn-outline" onclick="window.previewMedia('foto',${i.id})">Lihat</button>
-        <button class="btn btn-sm btn-danger" onclick="window.hapusMedia('foto',${i.id})">Hapus</button>
+        <button class="btn btn-sm btn-outline" onclick="window.previewMedia('foto',${i.id})">👁️ Lihat</button>
+        <button class="btn btn-sm btn-danger" onclick="window.hapusMedia('foto',${i.id})">🗑️ Hapus</button>
       </div>
     </div>
   `).join('');
+};
+
+// ============ PREVIEW MEDIA (DIPERBAIKI TOTAL) ============
+window.previewMedia = async function(type, id) {
+  console.log('🔍 Preview dipanggil:', { type, id });
+  
+  try {
+    const media = await window.getMedia();
+    const schoolId = currentUser.schoolId;
+    
+    console.log('📊 School ID:', schoolId);
+    console.log('📊 Media keys:', Object.keys(media));
+    
+    if (!media[schoolId]) {
+      alert('️ Data media sekolah tidak ditemukan!');
+      return;
+    }
+    
+    const schoolMedia = media[schoolId];
+    
+    if (!schoolMedia[type] || !Array.isArray(schoolMedia[type])) {
+      alert('⚠️ Kategori media tidak valid!');
+      return;
+    }
+    
+    console.log(' Items in category:', schoolMedia[type].length);
+    
+    const item = schoolMedia[type].find(i => i.id === id);
+    
+    if (!item) {
+      console.error('❌ Item tidak ditemukan dengan ID:', id);
+      console.log(' Available IDs:', schoolMedia[type].map(i => i.id));
+      alert('⚠️ Foto tidak ditemukan! ID: ' + id);
+      return;
+    }
+    
+    console.log('✅ Item ditemukan:', item);
+    
+    let html = '';
+    
+    if (type === 'foto') {
+      html = `
+        <div style="background:#000; min-height:400px; display:flex; align-items:center; justify-content:center;">
+          <img src="${item.url}" 
+               style="max-width:100%; max-height:70vh; object-fit:contain;" 
+               onerror="this.src='https://via.placeholder.com/800x600?text=Foto+Gagal+Dimuat'; this.style.padding='2rem';">
+        </div>
+        <div style="padding:1.5rem; background:white;">
+          <h3 style="margin:0 0 0.5rem 0; color:#1e293b;">${escapeHtml(item.title)}</h3>
+          ${item.desc ? `<p style="color:#64748b; margin:0;">${escapeHtml(item.desc)}</p>` : ''}
+          <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid #e2e8f0; font-size:0.85rem; color:#94a3b8;">
+            📅 Diupload: ${new Date(item.id).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </div>
+        </div>
+      `;
+    } else if (type === 'video') {
+      const ytId = extractYoutubeId(item.url);
+      const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}` : item.url;
+      html = `
+        <div style="position:relative; padding-bottom:56.25%; background:#000;">
+          <iframe src="${embedUrl}" 
+                  style="position:absolute; inset:0; width:100%; height:100%; border:0;" 
+                  allowfullscreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+          </iframe>
+        </div>
+        <div style="padding:1.5rem; background:white;">
+          <h3 style="margin:0 0 0.5rem 0; color:#1e293b;">${escapeHtml(item.title)}</h3>
+          ${item.desc ? `<p style="color:#64748b; margin:0;">${escapeHtml(item.desc)}</p>` : ''}
+        </div>
+      `;
+    } else {
+      html = `
+        <iframe src="${item.url}" 
+                style="width:100%; height:70vh; border:0; background:#f8fafc;"
+                onerror="this.srcdoc='<div style=\'padding:2rem; text-align:center;\'>Dokumen tidak bisa ditampilkan</div>';">
+        </iframe>
+        <div style="padding:1.5rem; background:white;">
+          <h3 style="margin:0 0 0.5rem 0; color:#1e293b;">${escapeHtml(item.title)}</h3>
+          ${item.desc ? `<p style="color:#64748b; margin:0;">${escapeHtml(item.desc)}</p>` : ''}
+          <a href="${item.url}" target="_blank" class="btn btn-sm" style="margin-top:1rem; text-decoration:none; display:inline-block;">
+            ↗️ Buka di Tab Baru
+          </a>
+        </div>
+      `;
+    }
+    
+    const previewContent = document.getElementById('previewContent');
+    const previewModal = document.getElementById('previewModal');
+    
+    if (!previewContent || !previewModal) {
+      console.error(' Modal elements not found');
+      alert('️ Modal preview tidak ditemukan!');
+      return;
+    }
+    
+    previewContent.innerHTML = html;
+    previewModal.classList.add('active');
+    
+    console.log('✅ Preview modal opened');
+    
+  } catch (error) {
+    console.error('❌ Error di previewMedia:', error);
+    alert('⚠️ Terjadi error saat membuka preview: ' + error.message);
+  }
 };
 
 window.renderVideo = function(items) {
